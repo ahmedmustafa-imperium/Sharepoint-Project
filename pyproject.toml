@@ -1,3 +1,100 @@
+
+
+
+
+
+
+# Placeholder adapter: Azure Function app entrypoint
+
+# Placeholder adapter: FastAPI app factory
+
+
+# Placeholder aggregator router
+
+# Placeholder router: users
+
+# Placeholder router: drives
+
+# Placeholder router: list_items
+
+# Placeholder router: lists
+
+# Placeholder router: sites
+
+
+# Placeholder utils: Mapper
+
+# Placeholder utils: Token cache
+
+# Placeholder utils: Retry policy
+
+# Placeholder utils: HTTP client
+
+
+# Placeholder repository: SearchRepository
+
+# Placeholder repository: AuthRepository
+
+# Placeholder repository: UserRepository
+
+# Placeholder repository: DriveRepository
+
+# Placeholder repository: ListItemRepository
+
+# Placeholder repository: ListRepository
+
+# Placeholder repository: SiteRepository
+
+
+# Placeholder service: SearchService
+
+# Placeholder service: AuthService
+
+# Placeholder service: UserService
+
+# Placeholder service: DriveService
+
+# Placeholder service: ListItemService
+
+# Placeholder service: ListService
+
+# Placeholder service: SiteService
+
+
+# Placeholder manager: SharePointAuthManager
+
+# Placeholder manager: SharePointUserManager
+
+# Placeholder manager: SharePointDriveManager
+
+# Placeholder manager: SharePointListItemManager
+
+# Placeholder manager: SharePointListManager
+
+# Placeholder manager: SharePointSiteManager
+
+
+# Placeholder data entity: User
+
+# Placeholder data entity: Drive
+
+# Placeholder data entity: ListItem
+
+# Placeholder data entity: List
+
+# Placeholder data entity: Site
+
+
+# Placeholder for token validation and middleware
+
+# Placeholder for FastAPI dependency injection helpers
+
+# Placeholder for logging setup
+
+# Placeholder for environment variables and tenant/client info
+
+
+
 [project]
 name = "Sharepoint-Project"
 version = "0.1.0"
