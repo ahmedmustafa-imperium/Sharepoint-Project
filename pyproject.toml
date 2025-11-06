@@ -1,0 +1,18 @@
+[project]
+name = "Sharepoint-Project"
+version = "0.1.0"
+description = "Default template for PDM package"
+authors = [
+    {name = "Rooman Abdul Latif", email = "Rooman.AbdulLatif@imperiumdynamics.com"},
+]
+dependencies = []
+requires-python = "==3.11.*"
+readme = "README.md"
+license = {text = "MIT"}
+
+
+[tool.pdm]
+distribution = false
+
+[tool.pdm.scripts]
+start = "python main.py"
