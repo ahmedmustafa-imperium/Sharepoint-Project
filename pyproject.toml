@@ -5,7 +5,7 @@ description = "Default template for PDM package"
 authors = [
     {name = "Rooman Abdul Latif", email = "Rooman.AbdulLatif@imperiumdynamics.com"},
 ]
-dependencies = []
+dependencies = ["fastapi>=0.121.0", "uvicorn>=0.38.0", "httpx>=0.28.1", "pydantic>=2.12.4", "python-dotenv>=1.2.1", "pytest>=8.4.2", "pydantic-settings>=2.11.0", "jose>=1.0.0", "python-jose>=3.5.0", "msal>=1.34.0"]
 requires-python = "==3.11.*"
 readme = "README.md"
 license = {text = "MIT"}
@@ -15,4 +15,5 @@ license = {text = "MIT"}
 distribution = false
 
 [tool.pdm.scripts]
-start = "python main.py"
+start = "uvicorn app.adapters.fastapi_app:app --reload --log-level debug"
+
