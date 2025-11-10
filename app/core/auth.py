@@ -12,8 +12,9 @@ import logging
 from typing import Dict, Optional
 from jose import jwt
 import httpx
-from fastapi import Request, HTTPException, status
+from fastapi import Request
 from app.core.config import settings
+from app.core.exceptions.auth_exceptions import InvalidTokenHeaderException,TokenKeyNotFoundException,TokenException,MissingAuthorizationHeaderException,InvalidAuthorizationHeaderException
 
 logger = logging.getLogger(__name__)
 _jwks_cache: Optional[Dict] = None
@@ -66,7 +67,7 @@ async def verify_jwt(token: str, audience: Optional[str] = None) -> Dict:
     unverified_header = jwt.get_unverified_header(token)
     kid = unverified_header.get("kid")
     if not kid:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token header")
+        raise InvalidTokenHeaderException()
 
     key = None
     for jwk in jwks.get("keys", []):
@@ -74,7 +75,7 @@ async def verify_jwt(token: str, audience: Optional[str] = None) -> Dict:
             key = jwk
             break
     if key is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token key not found")
+        raise TokenKeyNotFoundException()
 
     # Build public key and verify
     try:
@@ -88,7 +89,7 @@ async def verify_jwt(token: str, audience: Optional[str] = None) -> Dict:
         return payload
     except Exception as exc:
         logger.exception("JWT verification failed")
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(exc))
+        raise TokenException(exc)
 
 async def get_current_user(request: Request, audience: Optional[str] = None):
     """
@@ -97,10 +98,10 @@ async def get_current_user(request: Request, audience: Optional[str] = None):
     """
     auth = request.headers.get("authorization")
     if not auth:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing Authorization header")
+        raise MissingAuthorizationHeaderException()
     parts = auth.split()
     if parts[0].lower() != "bearer" or len(parts) != 2:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Authorization header")
+        raise InvalidAuthorizationHeaderException()
     token = parts[1]
     payload = await verify_jwt(token, audience=audience)
     return payload
