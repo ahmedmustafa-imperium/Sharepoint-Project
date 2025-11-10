@@ -1,11 +1,108 @@
+
+
+
+
+
+
+# Placeholder adapter: Azure Function app entrypoint
+
+# Placeholder adapter: FastAPI app factory
+
+
+# Placeholder aggregator router
+
+# Placeholder router: users
+
+# Placeholder router: drives
+
+# Placeholder router: list_items
+
+# Placeholder router: lists
+
+# Placeholder router: sites
+
+
+# Placeholder utils: Mapper
+
+# Placeholder utils: Token cache
+
+# Placeholder utils: Retry policy
+
+# Placeholder utils: HTTP client
+
+
+# Placeholder repository: SearchRepository
+
+# Placeholder repository: AuthRepository
+
+# Placeholder repository: UserRepository
+
+# Placeholder repository: DriveRepository
+
+# Placeholder repository: ListItemRepository
+
+# Placeholder repository: ListRepository
+
+# Placeholder repository: SiteRepository
+
+
+# Placeholder service: SearchService
+
+# Placeholder service: AuthService
+
+# Placeholder service: UserService
+
+# Placeholder service: DriveService
+
+# Placeholder service: ListItemService
+
+# Placeholder service: ListService
+
+# Placeholder service: SiteService
+
+
+# Placeholder manager: SharePointAuthManager
+
+# Placeholder manager: SharePointUserManager
+
+# Placeholder manager: SharePointDriveManager
+
+# Placeholder manager: SharePointListItemManager
+
+# Placeholder manager: SharePointListManager
+
+# Placeholder manager: SharePointSiteManager
+
+
+# Placeholder data entity: User
+
+# Placeholder data entity: Drive
+
+# Placeholder data entity: ListItem
+
+# Placeholder data entity: List
+
+# Placeholder data entity: Site
+
+
+# Placeholder for token validation and middleware
+
+# Placeholder for FastAPI dependency injection helpers
+
+# Placeholder for logging setup
+
+# Placeholder for environment variables and tenant/client info
+
+
+
 [project]
 name = "Sharepoint-Project"
 version = "0.1.0"
 description = "Default template for PDM package"
 authors = [
-    {name = "Rooman Abdul Latif", email = "Rooman.AbdulLatif@imperiumdynamics.com"},
+    {name = "Ahmed Mustafa Khokhar ", email = "ahmed.mustafa@imperiumdynamics.com"},
 ]
-dependencies = ["pydantic>=2.12.4", "msal>=1.34.0", "pydantic-settings>=2.11.0", "requests>=2.32.0"]
+dependencies = ["fastapi>=0.121.1", "uvicorn>=0.38.0", "httpx>=0.28.1", "pydantic>=2.12.4", "python-dotenv>=1.2.1", "pytest>=8.4.2", "pydantic-settings>=2.11.0", "jose>=1.0.0", "python-jose>=3.5.0", "msal>=1.34.0"]
 requires-python = "==3.11.*"
 readme = "README.md"
 license = {text = "MIT"}
@@ -15,4 +112,6 @@ license = {text = "MIT"}
 distribution = false
 
 [tool.pdm.scripts]
-start = "python main.py"
+start = "uvicorn app.adapters.fastapi_app:app --reload --log-level debug"
+
+
