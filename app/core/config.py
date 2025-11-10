@@ -1,0 +1,42 @@
+"""
+Configuration module for application runtime settings.
+
+Loads environment variables such as Azure client credentials,
+logging configuration, and Redis settings for token caching.
+"""
+
+from typing import Optional
+from pydantic_settings import BaseSettings
+from pydantic import Field, AnyHttpUrl
+
+class Settings(BaseSettings):
+    """
+    Application settings loaded from environment variables using Pydantic.
+
+    This object centralizes all configuration such as Azure OAuth parameters
+    and application runtime settings.
+    """
+    AZURE_TENANT_ID: str = Field(..., env="AZURE_TENANT_ID")
+    AZURE_CLIENT_ID: str = Field(..., env="AZURE_CLIENT_ID")
+    AZURE_CLIENT_SECRET: str = Field(..., env="AZURE_CLIENT_SECRET")
+    AZURE_SCOPE: str = Field("https://graph.microsoft.com/.default", env="AZURE_SCOPE")
+
+    # For JWT validation (incoming tokens)
+    AZURE_OPENID_CONFIG_URL: Optional[AnyHttpUrl] = Field(
+        None, env="AZURE_OPENID_CONFIG_URL")
+    TOKEN_CACHE_REDIS_URL: Optional[str] = Field(None, env="TOKEN_CACHE_REDIS_URL")
+    TOKEN_REFRESH_BUFFER_SECONDS: int = Field(60, env="TOKEN_REFRESH_BUFFER_SECONDS")
+
+    # App settings
+    ENV: str = Field("development", env="ENV")
+    LOG_LEVEL: str = Field("DEBUG", env="LOG_LEVEL")
+    
+    # Microsoft Graph API settings
+    GRAPH_BASE: str = Field("https://graph.microsoft.com/v1.0", env="GRAPH_BASE")
+
+    class Config:
+        """Pydantic BaseSettings configuration."""
+        env_file = ".env"
+        case_sensitive = True
+
+settings = Settings()
