@@ -20,6 +20,10 @@ class Settings(BaseSettings):
     AZURE_CLIENT_ID: str = Field(..., env="AZURE_CLIENT_ID")
     AZURE_CLIENT_SECRET: str = Field(..., env="AZURE_CLIENT_SECRET")
     AZURE_SCOPE: str = Field("https://graph.microsoft.com/.default", env="AZURE_SCOPE")
+    
+    # base URL for Microsoft Graph
+    GRAPH_BASE_URL: AnyHttpUrl = Field("https://graph.microsoft.com/v1.0", env="GRAPH_BASE_URL")
+    DEFAULT_PAGE_SIZE: int = Field(50, env="DEFAULT_PAGE_SIZE")
 
     # For JWT validation (incoming tokens)
     AZURE_OPENID_CONFIG_URL: Optional[AnyHttpUrl] = Field(
