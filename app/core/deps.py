@@ -5,6 +5,8 @@ This module provides dependency functions for FastAPI endpoints.
 """
 from fastapi import Depends
 from app.managers.sharepoint_auth_manager import SharePointAuthManager
+from app.managers.sharepoint_site_manager import SharePointSiteManager
+
 from app.utils.graph_client import GraphClient
 from app.repositories.list_repository import ListRepository
 from app.services.list_service import ListService
@@ -74,3 +76,7 @@ def get_sharepoint_list_manager(list_service : ListService = Depends(get_list_se
         SharePointListManager: A new instance of SharePointListManager.
     """
     return SharePointListManager(list_service=list_service)
+
+
+def get_sharepoint_site_manager() -> SharePointSiteManager:
+    return SharePointSiteManager()

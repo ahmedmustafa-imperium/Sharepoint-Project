@@ -1,15 +1,15 @@
-from pydantic import BaseModel, AnyUrl
+from typing import Optional, List
 from datetime import datetime
-from typing import Optional
-
-
+from pydantic import BaseModel, HttpUrl
 class SiteResponse(BaseModel):
     id: str
     title: str
-    url: AnyUrl
-    owner: Optional[str]
-    created_at: Optional[datetime]
+    url: HttpUrl
+    owner: Optional[str] = None
+    created_at: Optional[datetime] = None
+ 
 
 
 class SiteListResponse(BaseModel):
-    sites: list[SiteResponse]
+    sites: List[SiteResponse]
+    total: Optional[int] = None
