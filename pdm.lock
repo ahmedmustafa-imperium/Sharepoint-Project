@@ -5,7 +5,7 @@
 groups = ["default"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
-content_hash = "sha256:0bd3ae0a377e36ddee68fc78d296d070357398734e7cc1a2762f7acc1c3223dd"
+content_hash = "sha256:752e36419148b080de6242550266c4c06d5f54aa5755d1eb2c2bde26ebd3350a"
 
 [[metadata.targets]]
 requires_python = "==3.11.*"
@@ -50,6 +50,39 @@ dependencies = [
 files = [
     {file = "anyio-4.11.0-py3-none-any.whl", hash = "sha256:0287e96f4d26d4149305414d4e3bc32f0dcd0862365a4bddea19d7a1ec38c4fc"},
     {file = "anyio-4.11.0.tar.gz", hash = "sha256:82a8d0b81e318cc5ce71a5f1f8b5c4e63619620b63141ef8c995fa0db95a57c4"},
+]
+
+[[package]]
+name = "azure-core"
+version = "1.36.0"
+requires_python = ">=3.9"
+summary = "Microsoft Azure Core Library for Python"
+groups = ["default"]
+dependencies = [
+    "requests>=2.21.0",
+    "typing-extensions>=4.6.0",
+]
+files = [
+    {file = "azure_core-1.36.0-py3-none-any.whl", hash = "sha256:fee9923a3a753e94a259563429f3644aaf05c486d45b1215d098115102d91d3b"},
+    {file = "azure_core-1.36.0.tar.gz", hash = "sha256:22e5605e6d0bf1d229726af56d9e92bc37b6e726b141a18be0b4d424131741b7"},
+]
+
+[[package]]
+name = "azure-identity"
+version = "1.25.1"
+requires_python = ">=3.9"
+summary = "Microsoft Azure Identity Library for Python"
+groups = ["default"]
+dependencies = [
+    "azure-core>=1.31.0",
+    "cryptography>=2.5",
+    "msal-extensions>=1.2.0",
+    "msal>=1.30.0",
+    "typing-extensions>=4.0.0",
+]
+files = [
+    {file = "azure_identity-1.25.1-py3-none-any.whl", hash = "sha256:e9edd720af03dff020223cd269fa3a61e8f345ea75443858273bcb44844ab651"},
+    {file = "azure_identity-1.25.1.tar.gz", hash = "sha256:87ca8328883de6036443e1c37b40e8dc8fb74898240f61071e09d2e369361456"},
 ]
 
 [[package]]
@@ -313,6 +346,20 @@ dependencies = [
 files = [
     {file = "msal-1.34.0-py3-none-any.whl", hash = "sha256:f669b1644e4950115da7a176441b0e13ec2975c29528d8b9e81316023676d6e1"},
     {file = "msal-1.34.0.tar.gz", hash = "sha256:76ba83b716ea5a6d75b0279c0ac353a0e05b820ca1f6682c0eb7f45190c43c2f"},
+]
+
+[[package]]
+name = "msal-extensions"
+version = "1.3.1"
+requires_python = ">=3.9"
+summary = "Microsoft Authentication Library extensions (MSAL EX) provides a persistence API that can save your data on disk, encrypted on Windows, macOS and Linux. Concurrent data access will be coordinated by a file lock mechanism."
+groups = ["default"]
+dependencies = [
+    "msal<2,>=1.29",
+]
+files = [
+    {file = "msal_extensions-1.3.1-py3-none-any.whl", hash = "sha256:96d3de4d034504e969ac5e85bae8106c8373b5c6568e4c8fa7af2eca9dbe6bca"},
+    {file = "msal_extensions-1.3.1.tar.gz", hash = "sha256:c5b0fd10f65ef62b5f1d62f4251d51cbcaf003fcedae8c91b040a488614be1a4"},
 ]
 
 [[package]]
