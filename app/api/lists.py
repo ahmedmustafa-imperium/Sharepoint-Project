@@ -3,8 +3,8 @@ API routes for SharePoint Lists.
 
 Handles HTTP requests for list operations.
 """
-from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import Optional
+from fastapi import APIRouter, Depends, HTTPException, Query
 from app.core.deps import get_sharepoint_list_manager
 from app.managers.sharepoint_list_manager import SharePointListManager
 from app.data.list import (
