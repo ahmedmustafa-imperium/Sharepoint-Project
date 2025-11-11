@@ -1,7 +1,6 @@
 import logging
 from typing import List, Dict, Any
 import httpx
-from app.utils.retry_policy import retry
 from app.core.config import settings
 from app.managers.sharepoint_auth_manager import SharePointAuthManager
 
@@ -45,7 +44,7 @@ class SiteRepository:
         items = data.get("value", [])
         return items
 
-    @retry(max_attempts=3, base_delay=10, exceptions=(httpx.HTTPError,))
+
     async def get_site_by_id(self, site_id: str) -> Dict[str, Any]:
         headers = await self._get_headers()
         url = f"{self.base_url}/sites/{site_id}"
@@ -53,7 +52,6 @@ class SiteRepository:
         resp.raise_for_status()
         return resp.json()
 
-    @retry(max_attempts=3, base_delay=10, exceptions=(httpx.HTTPError,))
     async def search_sites(self, q: str) -> List[Dict[str, Any]]:
         """
         Search sites by display name or url.
