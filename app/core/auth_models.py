@@ -27,7 +27,4 @@ class TokenRequest(BaseModel):
     client_secret: str
     scope: str
 
-# class ErrorResponse(BaseModel):
-#     code: str
-#     message: str
-#     details: Optional[str] = None
+
