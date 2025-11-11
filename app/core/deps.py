@@ -82,6 +82,12 @@ def get_sharepoint_list_manager(list_service : ListService = Depends(get_list_se
 
 
 def get_sharepoint_site_manager() -> SharePointSiteManager:
+    """
+    FastAPI dependency provider for SharePointSiteManager.
+
+    Returns:
+        SharePointSiteManager: A new instance of SharePointSiteManager.
+    """
     return SharePointSiteManager()
 
 def get_list_item_repository(graph_client: GraphClient = Depends(get_graph_client)) -> ListItemRepository:

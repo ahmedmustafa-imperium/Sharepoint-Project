@@ -16,9 +16,9 @@ class Settings(BaseSettings):
     This object centralizes all configuration such as Azure OAuth parameters
     and application runtime settings.
     """
-    AZURE_TENANT_ID: str = Field(..., env="AZURE_TENANT_ID")
-    AZURE_CLIENT_ID: str = Field(..., env="AZURE_CLIENT_ID")
-    AZURE_CLIENT_SECRET: str = Field(..., env="AZURE_CLIENT_SECRET")
+    azure_tenant_id: str 
+    azure_client_id: str
+    azure_client_secret: str 
     AZURE_SCOPE: str = Field("https://graph.microsoft.com/.default", env="AZURE_SCOPE")
     
     # base URL for Microsoft Graph
@@ -41,6 +41,6 @@ class Settings(BaseSettings):
     class Config:
         """Pydantic BaseSettings configuration."""
         env_file = ".env"
-        case_sensitive = True
+        case_sensitive = False
 
 settings = Settings()
