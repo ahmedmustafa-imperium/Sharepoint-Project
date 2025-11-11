@@ -3,6 +3,7 @@ from fastapi import FastAPI, Depends
 from app.core.deps import get_sharepoint_auth_manager  
 from app.core.logging import configure_logging
 from app.api.router import api_router
+from app.api.router import api_router
 
 
 configure_logging()
