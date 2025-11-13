@@ -93,7 +93,7 @@ class SiteRepository:
 
     async def search_sites(self, q: str) -> List[Dict[str, Any]]:
         """
-        Search sites by display name or url.
+        Search sites by display name.
         Use Graph Search or filter client-side if needed.
         For simplicity, we use /sites?search=<q>
         """

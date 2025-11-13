@@ -1,0 +1,26 @@
+from app.services.drive_service import DriveService
+from app.repositories.drive_repository import DriveRepository
+from app.data.drive import FileUploadRequest
+
+
+
+class SharePointDriveManager:
+    """
+    Facade to orchestrate all drive-related operations.
+    """
+
+    def __init__(self):
+        self.repo = DriveRepository()
+        self.service = DriveService(self.repo)
+
+    async def list_drives(self, site_id: str):
+        return await self.service.list_drives(site_id)
+
+    async def list_items(self, drive_id: str, folder_id: str = None):
+        return await self.service.list_items(drive_id, folder_id)
+
+    async def upload_file(self, drive_id: str, file_request: FileUploadRequest):
+        return await self.service.upload_file(drive_id, file_request)
+
+    def download_file(self, drive_id: str, file_id: str):
+        return self.service.download_file(drive_id, file_id)

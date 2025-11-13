@@ -15,6 +15,10 @@ from app.managers.sharepoint_list_manager import SharePointListManager
 from app.managers.sharepoint_list_item_manager import SharePointListItemManager
 
 from app.utils.token_cache import TokenCache
+from app.managers.sharepoint_drive_manager import SharePointDriveManager
+
+from typing import Optional
+from app.core.config import settings
 
 # Shared token cache instance (singleton pattern)
 _token_cache = TokenCache()
@@ -46,7 +50,7 @@ def get_graph_client() -> GraphClient:
         """Token getter function for HTTP client."""
         return await _auth_manager.get_access_token()
     
-    return GraphClient(token_getter=token_getter)
+    return GraphClient()
 
 
 def get_list_repository(graph_client: GraphClient = Depends(get_graph_client)) -> ListRepository:
@@ -116,3 +120,9 @@ def get_sharepoint_list_item_manager(list_item_service: ListItemService = Depend
         SharePointListItemManager: A new instance of SharePointListItemManager.
     """
     return SharePointListItemManager(list_item_service=list_item_service)
+
+
+def get_sharepoint_drive_manager() -> SharePointDriveManager:
+    return SharePointDriveManager()
+
+
