@@ -19,10 +19,10 @@ class TokenResponse(BaseModel):
         expire_time = int(time.time())+ self.expires_in
         return (expire_time - buffer_seconds) <= int(time.time())
 
-class TokenRequest(BaseModel):
-    """
-    Data required to request an access token from Azure AD.
-    """
-    client_id: str
-    client_secret: str
-    scope: str
+# class TokenRequest(BaseModel):
+#     """
+#     Data required to request an access token from Azure AD.
+#     """
+#     client_id: str
+#     client_secret: str
+#     scope: str

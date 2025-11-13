@@ -1,4 +1,0 @@
-https://graph.microsoft.com/v1.0/sites/imperiumdynamicscom.sharepoint.com,8c67908e-075f-4a38-beb5-5198351a049c,56422606-38dc-4d5d-8715-a453bab87620/drive/root:/
-
-site_id imperiumdynamicscom.sharepoint.com,8c67908e-075f-4a38-beb5-5198351a049c,56422606-38dc-4d5d-8715-a453bab87620
-list_id d4d902fe-e9c6-40f1-abfc-a042de09ffe0

@@ -4,12 +4,14 @@ Repository layer for interacting with SharePoint sites via Microsoft Graph API.
 Provides low-level data access methods for retrieving SharePoint site information.
 """
 import logging
-from typing import List, Dict, Any
+from typing import List, Optional
 
 from fastapi import status
 
 from app.core.exceptions.sharepoint_exceptions import map_graph_error
 from app.utils.graph_client import GraphClient, GraphAPIError
+from app.utils.mapper import map_site_json
+from app.data.site import SiteResponse
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +25,7 @@ class SiteRepository:
     def __init__(self, graph_client: GraphClient):
         self.graph_client = graph_client
 
-    async def list_sites(self, top: int = 50) -> List[Dict[str, Any]]:
+    async def list_sites(self, top: int = 50) -> List[SiteResponse]:
         """
         List site collections accessible to the app. Uses Graph: /sites?search=*
         Note: Graph permissions and tenant settings affect results.
@@ -33,7 +35,13 @@ class SiteRepository:
 
         try:
             response = await self.graph_client.get("sites", params=params)
-            return response.get("value", [])
+            sites = []
+            for raw_site in response.get("value", []):
+                try:
+                    sites.append(map_site_json(raw_site))
+                except Exception as exc:
+                    logger.warning("Failed to map site response: %s", exc)
+            return sites
         except GraphAPIError as exc:
             logger.exception("Failed to list sites")
             raise map_graph_error(
@@ -42,7 +50,7 @@ class SiteRepository:
                 details=exc.response_body,
             ) from exc
 
-    async def get_site_by_id(self, site_id: str) -> Dict[str, Any]:
+    async def get_site_by_id(self, site_id: str) -> Optional[SiteResponse]:
         """
         Retrieve details of a specific SharePoint site by its unique ID.
 
@@ -56,7 +64,18 @@ class SiteRepository:
         logger.info("Retrieving SharePoint site %s", site_id)
 
         try:
-            return await self.graph_client.get(endpoint)
+            response = await self.graph_client.get(endpoint)
+            if not response:
+                return None
+            try:
+                return map_site_json(response)
+            except Exception as exc:
+                logger.exception("Failed to map site %s", site_id)
+                raise map_graph_error(
+                    "map SharePoint site",
+                    status_code=status.HTTP_502_BAD_GATEWAY,
+                    details=str(exc),
+                ) from exc
         except GraphAPIError as exc:
             logger.exception("Failed to retrieve site %s", site_id)
             raise map_graph_error(
@@ -65,7 +84,7 @@ class SiteRepository:
                 details=exc.response_body,
             ) from exc
 
-    async def search_sites(self, q: str) -> List[Dict[str, Any]]:
+    async def search_sites(self, q: str) -> List[SiteResponse]:
         """
         Search sites by display name.
         Uses /sites?search=<q>
@@ -75,7 +94,13 @@ class SiteRepository:
 
         try:
             response = await self.graph_client.get("sites", params=params)
-            return response.get("value", [])
+            sites = []
+            for raw_site in response.get("value", []):
+                try:
+                    sites.append(map_site_json(raw_site))
+                except Exception as exc:
+                    logger.warning("Failed to map site response during search: %s", exc)
+            return sites
         except GraphAPIError as exc:
             logger.exception("Failed to search sites with query '%s'", q)
             raise map_graph_error(
