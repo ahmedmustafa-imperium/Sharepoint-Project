@@ -18,6 +18,10 @@ from app.data.drive import (
 )
 from app.core.exceptions.sharepoint_exceptions import map_graph_error
 from app.utils.graph_client import GraphAPIError, GraphClient
+from app.utils.mapper import (
+    map_drive_response,
+    map_drive_item_list_response,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +54,15 @@ class DriveRepository:
 
         drives = response.get("value", [])
         logger.debug("Retrieved %d drives for site %s", len(drives), site_id)
-        return [DriveResponse(**drive) for drive in drives]
+
+        mapped_drives = []
+        for drive in drives:
+            try:
+                mapped_drives.append(map_drive_response(drive))
+            except Exception as exc:
+                logger.warning("Failed to map drive response for drive %s: %s", drive.get("id"), exc)
+
+        return mapped_drives
 
     async def list_items(
         self,
@@ -75,20 +87,15 @@ class DriveRepository:
                 details=exc.response_body,
             ) from exc
 
-        items_data = response.get("value", [])
-        items = [
-            DriveItemResponse(
-                id=item.get("id", ""),
-                name=item.get("name", ""),
-                type="folder" if item.get("folder") else "file",
-                size=item.get("size", 0),
-                createdDateTime=item.get("createdDateTime"),
-                url=item.get("webUrl", ""),
-            )
-            for item in items_data
-        ]
-
-        return DriveItemListResponse(items=items, total_count=len(items))
+        try:
+            return map_drive_item_list_response(response)
+        except Exception as exc:
+            logger.exception("Failed to map drive items for drive %s", drive_id)
+            raise map_graph_error(
+                "map drive items",
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                details=str(exc),
+            ) from exc
 
     async def download_file(
         self,

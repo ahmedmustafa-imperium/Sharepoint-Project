@@ -5,8 +5,8 @@ Converts raw API JSON responses to Pydantic models.
 """
 
 import logging
-from typing import Dict, Any, Optional
-from datetime import datetime
+from typing import Dict, Any, Optional, List
+from datetime import datetime, timezone
 from app.data.list import (
     ListResponse,
     ListListResponse,
@@ -20,6 +20,11 @@ from app.data.list_item import (
     AttachmentListResponse,
     ListItemVersionResponse,
     ListItemVersionListResponse
+)
+from app.data.drive import (
+    DriveResponse,
+    DriveItemResponse,
+    DriveItemListResponse,
 )
 from app.data.site import SiteResponse
 
@@ -100,24 +105,22 @@ def map_site_json(raw: Dict[str, Any]) -> SiteResponse:
     Map a Graph API site JSON to SiteResponse domain model.
     Adjust keys according to actual Graph response.
     """
-    # Graph site object commonly has fields: id, displayName, webUrl, createdDateTime, lastModifiedDateTime, createdBy
-    created = raw.get("createdDateTime")
-    
-    owner = None
-    # owner info might be nested; try a couple of fallbacks
-    owner = raw.get("name")
+    created = parse_datetime(raw.get("createdDateTime"))
+
+    owner = raw.get("name") or raw.get("createdBy", {}).get("user", {}).get("displayName")
+
     url_str = raw.get("webUrl") or raw.get("url") or ""
     if url_str and not url_str.startswith("https://"):
         url_str = "https://" + url_str.lstrip("/")
 
-    
+    title = raw.get("displayName") or raw.get("name") or ""
+
     return SiteResponse(
         id=str(raw.get("id", "")),
-        title=raw.get("displayName"),
+        title=title,
         url=url_str,
         owner=owner,
-        created_at=datetime.fromisoformat(created) if created else None,
-        
+        created_at=created,
     )
 
 def map_list_item_response(api_response: Dict[str, Any]) -> ListItemResponse:
@@ -248,4 +251,42 @@ def map_drive_item_to_domain(item: Dict[str, Any]) -> Dict[str, Any]:
         "size": item.get("size"),
         "web_url": item.get("webUrl") or item.get("@microsoft.graph.downloadUrl"),
     }
+
+
+def map_drive_response(raw: Dict[str, Any]) -> DriveResponse:
+    """Map Graph API drive response to DriveResponse domain model."""
+    created = parse_datetime(raw.get("createdDateTime"))
+
+    return DriveResponse(
+        id=str(raw.get("id", "")),
+        name=raw.get("name", ""),
+        createdDateTime=created or datetime.now(timezone.utc),
+        driveType=raw.get("driveType", ""),
+    )
+
+
+def map_drive_item_response(raw: Dict[str, Any]) -> DriveItemResponse:
+    """Map Graph API drive item response to DriveItemResponse model."""
+    item_type = "folder" if raw.get("folder") else "file"
+    size = raw.get("size") or 0
+
+    return DriveItemResponse(
+        id=str(raw.get("id", "")),
+        name=raw.get("name", ""),
+        type=item_type,
+        size=int(size),
+        createdDateTime=raw.get("createdDateTime"),
+        url=raw.get("webUrl") or raw.get("@microsoft.graph.downloadUrl") or "",
+    )
+
+
+def map_drive_item_list_response(raw: Dict[str, Any]) -> DriveItemListResponse:
+    """Map Graph API drive children response to DriveItemListResponse model."""
+    items = raw.get("value", [])
+    mapped_items: List[DriveItemResponse] = [map_drive_item_response(item) for item in items]
+
+    return DriveItemListResponse(
+        items=mapped_items,
+        total_count=len(mapped_items),
+    )
 
