@@ -21,5 +21,8 @@ class DriveService:
         # Add any business validation if needed
         return await self.drive_repository.upload_file(drive_id, file_request)
 
-    async def download_file(self, drive_id: str, file_id: str) -> FileDownloadResponse:
-        return await self.drive_repository.download_file(drive_id, file_id)
+    async def download_file(self, drive_id: str, file_id: str,destination_path:str)->FileDownloadResponse:
+        return await self.repo.download_file(drive_id, file_id,destination_path)
+    
+    async def download_files(self, drive_id: str, parent_id: str,destination_path:str)->FileDownloadResponse:
+        return await self.repo.download_files(drive_id,parent_id ,destination_path)
