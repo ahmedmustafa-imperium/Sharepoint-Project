@@ -50,7 +50,7 @@ def get_graph_client() -> GraphClient:
         """Token getter function for HTTP client."""
         return await _auth_manager.get_access_token()
     
-    return GraphClient()
+    return GraphClient(token_getter)
 
 
 def get_list_repository(graph_client: GraphClient = Depends(get_graph_client)) -> ListRepository:

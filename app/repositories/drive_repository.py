@@ -3,8 +3,9 @@ from typing import Optional
 from app.data.drive import DriveResponse, DriveItemResponse, DriveItemListResponse, FileDownloadResponse
 from app.managers.sharepoint_auth_manager import SharePointAuthManager
 from typing import Dict
-import requests,os
-
+import aiofiles
+import httpx
+import os
 
 class DriveRepository:
     """
@@ -67,27 +68,41 @@ class DriveRepository:
 
 
 
-    async def download_file(self, drive_id: str, file_id: str, destination_path: str | None = None) :
+    async def download_file(self, drive_id: str, file_id: str, destination_path: str | None = None) -> FileDownloadResponse:
         headers = await self._get_headers()
 
-        url = f"https://graph.microsoft.com/v1.0/drives/{drive_id}/items/{file_id}"
-        headers["Accept"] = "*/*"
+        # 1️ Get file metadata (to get the download URL)
+        metadata_url = f"https://graph.microsoft.com/v1.0/drives/{drive_id}/items/{file_id}"
+        async with httpx.AsyncClient() as client:
+            meta_resp = await client.get(metadata_url, headers=headers)
+            meta_resp.raise_for_status()
+            data = meta_resp.json()
 
-        with requests.get(url, headers=headers, timeout=60, stream=True) as resp:
-            if resp.status_code != 200:
-                raise RuntimeError(f"Failed to download file (status {resp.status_code}): {resp.text}")
+        download_url = data.get("@microsoft.graph.downloadUrl")
+        if not download_url:
+            raise RuntimeError("No download URL found for the file.")
 
-            if destination_path is None:
-                destination_path = "downloaded_file"
+        # 2️ Stream the file content to disk
+        file_name = data.get("name", "downloaded_file")
+        destination_path = destination_path or os.path.join(os.getcwd(), file_name)
 
-            with open(destination_path, "wb") as out:
-                for chunk in resp.iter_content(chunk_size=8192):
-                    if chunk:
-                        out.write(chunk)
+        async with httpx.AsyncClient() as client:
+            async with client.stream("GET", download_url, timeout=120) as resp:
+                resp.raise_for_status()
+                async with aiofiles.open(destination_path, "wb") as f:
+                    async for chunk in resp.aiter_bytes():
+                        await f.write(chunk)
 
-        return destination_path
-
-
+        # 3️ Return file metadata
+        return FileDownloadResponse(
+            id=data.get("id", ""),
+            file_name=file_name,
+            size=data.get("size"),
+            created_at=data.get("createdDateTime"),
+            last_modified_at=data.get("lastModifiedDateTime"),
+            web_url=data.get("webUrl"),
+            download_url=download_url
+        )
 
 
 
