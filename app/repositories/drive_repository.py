@@ -7,6 +7,10 @@ import aiofiles
 import httpx
 import os
 
+import asyncio
+import aiofiles
+import httpx
+from typing import List
 class DriveRepository:
     """
     Handles SharePoint API calls for drives, folders, files, version history, and permissions.
@@ -68,7 +72,7 @@ class DriveRepository:
 
 
 
-    async def download_file(self, drive_id: str, file_id: str, destination_path: str | None = None) -> FileDownloadResponse:
+    async def download_file(self, drive_id: str, file_id: str, destination_path: str = None) -> FileDownloadResponse:
         headers = await self._get_headers()
 
         # 1️ Get file metadata (to get the download URL)
@@ -82,9 +86,14 @@ class DriveRepository:
         if not download_url:
             raise RuntimeError("No download URL found for the file.")
 
-        # 2️ Stream the file content to disk
         file_name = data.get("name", "downloaded_file")
-        destination_path = destination_path or os.path.join(os.getcwd(), file_name)
+
+        if destination_path:
+            # If destination is a directory, append the filename
+            if os.path.isdir(destination_path):
+                destination_path = os.path.join(destination_path, file_name)
+        else:
+            destination_path = os.path.join(os.getcwd(), file_name)
 
         async with httpx.AsyncClient() as client:
             async with client.stream("GET", download_url, timeout=120) as resp:
@@ -103,7 +112,41 @@ class DriveRepository:
             web_url=data.get("webUrl"),
             download_url=download_url
         )
+    async def download_files(self, drive_id: str, parent_id: str = "root", destination_root: str = None):
+        """
+        Recursively download all files/folders from a given drive folder.
+        """
+        headers = await self._get_headers()
+        list_url = f"https://graph.microsoft.com/v1.0/drives/{drive_id}/items/{parent_id}/children"
 
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(list_url, headers=headers)
+            resp.raise_for_status()
+            items = resp.json().get("value", [])
+
+        if not destination_root:
+            destination_root = os.getcwd()
+
+        tasks = []
+
+        for item in items:
+            name = item.get("name")
+            item_id = item.get("id")
+            local_path = os.path.join(destination_root, name)
+
+            if "folder" in item:
+                # Create local folder and recurse
+                os.makedirs(local_path, exist_ok=True)
+                tasks.append(self.download_files(drive_id, item_id, local_path))
+            else:
+                # File — download to correct path
+                tasks.append(self.download_file(drive_id, item_id, local_path))
+
+        # Run all tasks concurrently
+        if tasks:
+            await asyncio.gather(*tasks)
+
+    
 
 
     async def upload_file(self, drive_id: str, file_request) -> DriveItemResponse:

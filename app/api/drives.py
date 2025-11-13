@@ -28,16 +28,13 @@ async def upload_file(drive_id: str, file: UploadFile = File(...), folder_id: st
 
 
 @router.get("/drives/{drive_id}/download/{file_id}")
-async def download_file(drive_id: str, file_id: str, manager: str = Depends(get_sharepoint_drive_manager)):
-    file_response = await manager.download_file(drive_id, file_id)
+async def download_file(drive_id: str, file_id: str,destination_path: str = None, manager: str = Depends(get_sharepoint_drive_manager)):
+    return await manager.download_file(drive_id, file_id,destination_path)
 
-    if file_response.content:
-        headers = {
-            "Content-Disposition": f'attachment; filename="{file_response.file_name or "downloaded_file"}"'
-        }
-        return StreamingResponse(BytesIO(file_response.content), media_type="application/octet-stream", headers=headers)
+@router.get("/drives/{drive_id}/download")
+async def download_files(drive_id: str, parent_id: str="root",destination_path: str = None, manager: str = Depends(get_sharepoint_drive_manager)):
+    return await manager.download_files(drive_id, parent_id,destination_path)
 
-    payload = file_response.dict(exclude={"content"}, exclude_none=True)
-    return JSONResponse(content=payload)
+    
     
 
