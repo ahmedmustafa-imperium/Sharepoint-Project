@@ -34,8 +34,14 @@ class FileUploadRequest(BaseModel):
 
 
 class FileDownloadResponse(BaseModel):
-    pass
-#     file_name: str
-#     content: Bytes
+    id: str
+    file_name: str
+    size: Optional[int] = None
+    created_at: Optional[str] = None
+    last_modified_at: Optional[str] = None
+    web_url: Optional[str] = None
+    download_url: Optional[str] = None
+    content: Optional[bytes] = None
+    saved_path: Optional[str] = None
 
 

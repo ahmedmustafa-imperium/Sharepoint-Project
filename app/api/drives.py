@@ -1,8 +1,8 @@
 from fastapi import APIRouter, UploadFile, File, Depends
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, JSONResponse
 from io import BytesIO
 from app.data.drive import FileUploadRequest
-from app.core.deps import get_sharepoint_drive_manager # returns token for MS Graph
+from app.core.deps import get_sharepoint_drive_manager  # returns token for MS Graph
 
 router = APIRouter()
 
@@ -28,10 +28,16 @@ async def upload_file(drive_id: str, file: UploadFile = File(...), folder_id: st
 
 
 @router.get("/drives/{drive_id}/download/{file_id}")
-def download_file(drive_id: str, file_id: str, manager: str = Depends(get_sharepoint_drive_manager)):
-    file_response = manager.download_file(drive_id, file_id)
+async def download_file(drive_id: str, file_id: str, manager: str = Depends(get_sharepoint_drive_manager)):
+    file_response = await manager.download_file(drive_id, file_id)
 
-    # Return as a streaming response to trigger download
-    return file_response
+    if file_response.content:
+        headers = {
+            "Content-Disposition": f'attachment; filename="{file_response.file_name or "downloaded_file"}"'
+        }
+        return StreamingResponse(BytesIO(file_response.content), media_type="application/octet-stream", headers=headers)
+
+    payload = file_response.dict(exclude={"content"}, exclude_none=True)
+    return JSONResponse(content=payload)
     
 

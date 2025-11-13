@@ -22,5 +22,5 @@ class SharePointDriveManager:
     async def upload_file(self, drive_id: str, file_request: FileUploadRequest):
         return await self.service.upload_file(drive_id, file_request)
 
-    def download_file(self, drive_id: str, file_id: str):
-        return self.service.download_file(drive_id, file_id)
+    async def download_file(self, drive_id: str, file_id: str):
+        return await self.service.download_file(drive_id, file_id)
