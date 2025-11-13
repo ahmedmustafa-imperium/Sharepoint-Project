@@ -14,7 +14,12 @@ from jose import jwt
 import httpx
 from fastapi import Request
 from app.core.config import settings
-from app.core.exceptions.auth_exceptions import InvalidTokenHeaderException,TokenKeyNotFoundException,TokenException,MissingAuthorizationHeaderException,InvalidAuthorizationHeaderException
+from app.core.exceptions.auth_exceptions import (   
+    InvalidTokenHeaderException,
+    TokenKeyNotFoundException,
+    TokenException,
+    MissingAuthorizationHeaderException,
+    InvalidAuthorizationHeaderException)
 
 logger = logging.getLogger(__name__)
 _jwks_cache: Optional[Dict] = None
@@ -89,7 +94,7 @@ async def verify_jwt(token: str, audience: Optional[str] = None) -> Dict:
         return payload
     except Exception as exc:
         logger.exception("JWT verification failed")
-        raise TokenException(exc)
+        raise TokenException(exc) from exc
 
 async def get_current_user(request: Request, audience: Optional[str] = None):
     """

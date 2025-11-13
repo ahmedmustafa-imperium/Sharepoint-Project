@@ -52,11 +52,12 @@ def get_graph_client() -> GraphClient:
     async def token_getter() -> str:
         """Token getter function for HTTP client."""
         return await _auth_manager.get_access_token()
-    
+
     return GraphClient(token_getter)
 
 
-def get_list_repository(graph_client: GraphClient = Depends(get_graph_client)) -> ListRepository:
+def get_list_repository(
+    graph_client: GraphClient = Depends(get_graph_client)) -> ListRepository:
     """
     FastAPI dependency provider for ListRepository.
 
@@ -67,7 +68,8 @@ def get_list_repository(graph_client: GraphClient = Depends(get_graph_client)) -
 
 
 
-def get_list_service(list_repository: ListRepository=Depends(get_list_repository)) -> ListService:
+def get_list_service(
+    list_repository: ListRepository=Depends(get_list_repository)) -> ListService:
     """
     FastAPI dependency provider for ListService.
 
@@ -78,7 +80,8 @@ def get_list_service(list_repository: ListRepository=Depends(get_list_repository
 
 
 
-def get_sharepoint_list_manager(list_service : ListService = Depends(get_list_service)) -> SharePointListManager:
+def get_sharepoint_list_manager(
+    list_service : ListService = Depends(get_list_service)) -> SharePointListManager:
     """
     FastAPI dependency provider for SharePointListManager.
 
@@ -88,27 +91,31 @@ def get_sharepoint_list_manager(list_service : ListService = Depends(get_list_se
     return SharePointListManager(list_service=list_service)
 
 
-def get_site_repository(graph_client: GraphClient = Depends(get_graph_client)) -> SiteRepository:
+def get_site_repository(
+    graph_client: GraphClient = Depends(get_graph_client)) -> SiteRepository:
     """
     FastAPI dependency provider for SiteRepository.
     """
     return SiteRepository(graph_client=graph_client)
 
 
-def get_site_service(site_repository: SiteRepository = Depends(get_site_repository)) -> SiteService:
+def get_site_service(
+    site_repository: SiteRepository = Depends(get_site_repository)) -> SiteService:
     """
     FastAPI dependency provider for SiteService.
     """
     return SiteService(repository=site_repository)
 
 
-def get_sharepoint_site_manager(site_service: SiteService = Depends(get_site_service)) -> SharePointSiteManager:
+def get_sharepoint_site_manager(
+    site_service: SiteService = Depends(get_site_service)) -> SharePointSiteManager:
     """
     FastAPI dependency provider for SharePointSiteManager.
     """
     return SharePointSiteManager(site_service=site_service)
 
-def get_list_item_repository(graph_client: GraphClient = Depends(get_graph_client)) -> ListItemRepository:
+def get_list_item_repository(
+    graph_client: GraphClient = Depends(get_graph_client)) -> ListItemRepository:
     """
     FastAPI dependency provider for ListItemRepository.
 
@@ -117,7 +124,8 @@ def get_list_item_repository(graph_client: GraphClient = Depends(get_graph_clien
     """
     return ListItemRepository(graph_client=graph_client)
 
-def get_list_item_service(list_item_repository: ListItemRepository = Depends( get_list_item_repository)) -> ListItemService:
+def get_list_item_service(
+    list_item_repository: ListItemRepository = Depends( get_list_item_repository)) -> ListItemService:
     """
     FastAPI dependency provider for ListItemService.
 
@@ -126,7 +134,8 @@ def get_list_item_service(list_item_repository: ListItemRepository = Depends( ge
     """
     return ListItemService(list_item_repository=list_item_repository)
 
-def get_sharepoint_list_item_manager(list_item_service: ListItemService = Depends(get_list_item_service)) -> SharePointListItemManager:
+def get_sharepoint_list_item_manager(
+    list_item_service: ListItemService = Depends(get_list_item_service)) -> SharePointListItemManager:
     """
     FastAPI dependency provider for SharePointListItemManager.
 
@@ -136,24 +145,25 @@ def get_sharepoint_list_item_manager(list_item_service: ListItemService = Depend
     return SharePointListItemManager(list_item_service=list_item_service)
 
 
-def get_drive_repository(graph_client: GraphClient = Depends(get_graph_client)) -> DriveRepository:
+def get_drive_repository(
+    graph_client: GraphClient = Depends(get_graph_client)) -> DriveRepository:
     """
     FastAPI dependency provider for DriveRepository.
     """
     return DriveRepository(graph_client=graph_client)
 
 
-def get_drive_service(drive_repository: DriveRepository = Depends(get_drive_repository)) -> DriveService:
+def get_drive_service(
+    drive_repository: DriveRepository = Depends(get_drive_repository)) -> DriveService:
     """
     FastAPI dependency provider for DriveService.
     """
     return DriveService(drive_repository=drive_repository)
 
 
-def get_sharepoint_drive_manager(drive_service: DriveService = Depends(get_drive_service)) -> SharePointDriveManager:
+def get_sharepoint_drive_manager(
+    drive_service: DriveService = Depends(get_drive_service)) -> SharePointDriveManager:
     """
     FastAPI dependency provider for SharePointDriveManager.
     """
     return SharePointDriveManager(drive_service=drive_service)
-
-

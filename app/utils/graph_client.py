@@ -95,7 +95,9 @@ class GraphClient:
         request_headers = await self._get_headers()
         if headers:
             request_headers.update(headers)
-        
+
+        logger.debug("GraphClient request %s %s", method, url)
+
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             try:
                 response = await client.request(
@@ -109,6 +111,12 @@ class GraphClient:
                 
                 # Raise exception for non-2xx status codes
                 if not response.is_success:
+                    logger.warning(
+                        "Graph API request failed: %s %s (status=%s)",
+                        method,
+                        url,
+                        response.status_code,
+                    )
                     error_msg = f"Graph API request failed: {method} {url}"
                     try:
                         error_body = response.json()
@@ -125,18 +133,19 @@ class GraphClient:
                 return response
                 
             except httpx.HTTPStatusError as e:
+                logger.error("HTTP status error during Graph request: %s", e)
                 raise GraphAPIError(
                     message=str(e),
                     status_code=e.response.status_code,
                     response_body=e.response.text
-                )
+                ) from e
             except httpx.RequestError as e:
-                logger.error(f"HTTP request error: {e}")
+                logger.error("HTTP request error: %s", e)
                 raise GraphAPIError(
                     message=f"Request failed: {str(e)}",
                     status_code=0,
                     response_body=None
-                )
+                ) from e
 
     async def get(
         self,

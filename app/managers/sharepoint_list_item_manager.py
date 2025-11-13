@@ -28,7 +28,7 @@ class SharePointListItemManager:
     Coordinates between FastAPI endpoints and ListItemService.
     Handles caching, batch operations, and complex workflows.
     """
-    
+
     def __init__(self, list_item_service: ListItemService):
         """
         Initialize SharePoint list item manager.

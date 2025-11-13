@@ -1,26 +1,27 @@
+"""Repository for interacting with SharePoint drive resources via Graph API."""
+
+import asyncio
 import logging
 import os
-from typing import Optional, List
+from typing import List, Optional
 
 import aiofiles
 import httpx
+from fastapi import status
 
 from app.data.drive import (
-    DriveResponse,
-    DriveItemResponse,
     DriveItemListResponse,
+    DriveItemResponse,
+    DriveResponse,
     FileDownloadResponse,
     FileUploadRequest,
 )
-from app.utils.graph_client import GraphClient, GraphAPIError
+from app.core.exceptions.sharepoint_exceptions import map_graph_error
+from app.utils.graph_client import GraphAPIError, GraphClient
 
 logger = logging.getLogger(__name__)
 
 
-import asyncio
-import aiofiles
-import httpx
-from typing import List
 class DriveRepository:
     """
     Handles SharePoint API calls for drives, folders, files, version history, and permissions.
@@ -35,13 +36,21 @@ class DriveRepository:
         """
         endpoint = f"sites/{site_id}/drives"
 
+        logger.info("Listing drives for site %s", site_id)
+
         try:
             response = await self.graph_client.get(endpoint)
-            drives = response.get("value", [])
-            return [DriveResponse(**drive) for drive in drives]
         except GraphAPIError as exc:
-            logger.error("Failed to list drives for site %s: %s", site_id, exc)
-            raise
+            logger.exception("Graph API error listing drives for site %s", site_id)
+            raise map_graph_error(
+                "list drives",
+                status_code=exc.status_code,
+                details=exc.response_body,
+            ) from exc
+
+        drives = response.get("value", [])
+        logger.debug("Retrieved %d drives for site %s", len(drives), site_id)
+        return [DriveResponse(**drive) for drive in drives]
 
     async def list_items(
         self,
@@ -54,11 +63,17 @@ class DriveRepository:
         folder_path = f"/items/{folder_id}" if folder_id else "/root"
         endpoint = f"drives/{drive_id}{folder_path}/children"
 
+        logger.info("Listing items for drive %s in folder %s", drive_id, folder_id or "root")
+
         try:
             response = await self.graph_client.get(endpoint)
         except GraphAPIError as exc:
-            logger.error("Failed to list items for drive %s: %s", drive_id, exc)
-            raise
+            logger.exception("Graph API error listing items for drive %s", drive_id)
+            raise map_graph_error(
+                "list drive items",
+                status_code=exc.status_code,
+                details=exc.response_body,
+            ) from exc
 
         items_data = response.get("value", [])
         items = [
@@ -86,48 +101,52 @@ class DriveRepository:
         """
         metadata_endpoint = f"drives/{drive_id}/items/{file_id}"
 
+        logger.info("Downloading file %s from drive %s", file_id, drive_id)
+
         try:
             metadata = await self.graph_client.get(metadata_endpoint)
         except GraphAPIError as exc:
-            logger.error(
-                "Failed to retrieve metadata for file %s in drive %s: %s",
+            logger.exception(
+                "Graph API error retrieving metadata for file %s in drive %s",
                 file_id,
                 drive_id,
-                exc,
             )
-            raise
+            raise map_graph_error(
+                "retrieve file metadata",
+                status_code=exc.status_code,
+                details=exc.response_body,
+            ) from exc
 
         download_url = metadata.get("@microsoft.graph.downloadUrl")
-    async def download_file(self, drive_id: str, file_id: str, destination_path: str = None) -> FileDownloadResponse:
-        headers = await self._get_headers()
-
-        # 1️ Get file metadata (to get the download URL)
-        metadata_url = f"https://graph.microsoft.com/v1.0/drives/{drive_id}/items/{file_id}"
-        async with httpx.AsyncClient() as client:
-            meta_resp = await client.get(metadata_url, headers=headers)
-            meta_resp.raise_for_status()
-            data = meta_resp.json()
-
-        download_url = data.get("@microsoft.graph.downloadUrl")
         if not download_url:
             logger.error("No download URL returned for file %s", file_id)
-            raise RuntimeError("No download URL found for the file.")
+            raise map_graph_error(
+                "download file",
+                status_code=status.HTTP_502_BAD_GATEWAY,  # type: ignore[name-defined]
+                details="No download URL returned for the file.",
+            )
 
-        file_name = data.get("name", "downloaded_file")
+        file_name = metadata.get("name", "downloaded_file")
 
-        if destination_path:
-            # If destination is a directory, append the filename
-            if os.path.isdir(destination_path):
-                destination_path = os.path.join(destination_path, file_name)
-        else:
-            destination_path = os.path.join(os.getcwd(), file_name)
-
+        chunks: List[bytes] = []
         async with httpx.AsyncClient() as client:
             async with client.stream("GET", download_url, timeout=120) as response:
                 response.raise_for_status()
-                async with aiofiles.open(resolved_path, "wb") as file_handle:
-                    async for chunk in response.aiter_bytes():
-                        await file_handle.write(chunk)
+                async for chunk in response.aiter_bytes():
+                    chunks.append(chunk)
+
+        content = b"".join(chunks)
+        saved_path: Optional[str] = None
+
+        if destination_path:
+            target_path = destination_path
+            if os.path.isdir(destination_path):
+                target_path = os.path.join(destination_path, file_name)
+
+            os.makedirs(os.path.dirname(target_path) or ".", exist_ok=True)
+            async with aiofiles.open(target_path, "wb") as file_handle:
+                await file_handle.write(content)
+            saved_path = target_path
 
         return FileDownloadResponse(
             id=metadata.get("id", ""),
@@ -137,50 +156,47 @@ class DriveRepository:
             last_modified_at=metadata.get("lastModifiedDateTime"),
             web_url=metadata.get("webUrl"),
             download_url=download_url,
-            saved_path=resolved_path,
+            content=content,
+            saved_path=saved_path,
         )
-    async def download_files(self, drive_id: str, parent_id: str = "root", destination_root: str = None):
+        
+    async def download_files(
+        self,
+        drive_id: str,
+        parent_id: str = "root",
+        destination_root: Optional[str] = None,
+    ) -> None:
         """
         Recursively download all files/folders from a given drive folder.
         """
-        headers = await self._get_headers()
-        list_url = f"https://graph.microsoft.com/v1.0/drives/{drive_id}/items/{parent_id}/children"
+        destination_root = destination_root or os.getcwd()
 
-        async with httpx.AsyncClient() as client:
-            resp = await client.get(list_url, headers=headers)
-            resp.raise_for_status()
-            items = resp.json().get("value", [])
+        logger.info(
+            "Recursively downloading items for drive %s under parent %s into %s",
+            drive_id,
+            parent_id,
+            destination_root,
+        )
 
-        if not destination_root:
-            destination_root = os.getcwd()
-
+        response = await self.list_items(drive_id, None if parent_id == "root" else parent_id)
         tasks = []
 
-        for item in items:
-            name = item.get("name")
-            item_id = item.get("id")
-            local_path = os.path.join(destination_root, name)
+        for item in response.items:
+            local_path = os.path.join(destination_root, item.name)
 
-            if "folder" in item:
-                # Create local folder and recurse
+            if item.type == "folder":
                 os.makedirs(local_path, exist_ok=True)
-                tasks.append(self.download_files(drive_id, item_id, local_path))
+                tasks.append(self.download_files(drive_id, item.id, local_path))
             else:
-                # File — download to correct path
-                tasks.append(self.download_file(drive_id, item_id, local_path))
+                tasks.append(self.download_file(drive_id, item.id, local_path))
 
-        # Run all tasks concurrently
         if tasks:
             await asyncio.gather(*tasks)
+            logger.debug("Completed downloading %d items from drive %s", len(tasks), drive_id)
 
-    
-
-
-    async def upload_file(self, drive_id: str, file_request) -> DriveItemResponse:
+    async def upload_file(self, drive_id: str, file_request: FileUploadRequest) -> DriveItemResponse:
         folder_path = file_request.folder_id or "root"
-        endpoint = (
-            f"drives/{drive_id}/items/{folder_path}:/{file_request.file_name}:/content"
-        )
+        endpoint = f"drives/{drive_id}/items/{folder_path}:/{file_request.file_name}:/content"
 
         try:
             response = await self.graph_client.put(

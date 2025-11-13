@@ -3,8 +3,8 @@ API routes for SharePoint List Items.
 
 Handles HTTP requests for list item operations.
 """
-from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import Optional
+from fastapi import APIRouter, Depends, HTTPException, Query
 from app.core.deps import get_sharepoint_list_item_manager
 from app.managers.sharepoint_list_item_manager import SharePointListItemManager
 from app.data.list_item import (
@@ -12,9 +12,7 @@ from app.data.list_item import (
     ListItemListResponse,
     ListItemCreateRequest,
     ListItemUpdateRequest,
-    AttachmentResponse,
     AttachmentListResponse,
-    ListItemVersionResponse,
     ListItemVersionListResponse
 )
 
@@ -48,9 +46,9 @@ async def get_list_items(
             filter_query=filter_query
         )
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}") from e
 
 
 @router.get("/{item_id}", response_model=ListItemResponse)
@@ -70,9 +68,9 @@ async def get_list_item_by_id(
     try:
         return await manager.get_list_item_by_id(site_id, list_id, item_id)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
-        raise HTTPException(status_code=404, detail=f"Item not found: {str(e)}")
+        raise HTTPException(status_code=404, detail=f"Item not found: {str(e)}") from e
 
 
 @router.post("", response_model=ListItemResponse, status_code=201)
@@ -92,9 +90,9 @@ async def create_list_item(
     try:
         return await manager.create_list_item(site_id, list_id, request)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to create item: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to create item: {str(e)}") from e
 
 
 @router.patch("/{item_id}", response_model=ListItemResponse)
@@ -116,9 +114,9 @@ async def update_list_item(
     try:
         return await manager.update_list_item(site_id, list_id, item_id, request)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to update item: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to update item: {str(e)}") from e
 
 
 @router.delete("/{item_id}", status_code=204)
@@ -139,9 +137,9 @@ async def delete_list_item(
         await manager.delete_list_item(site_id, list_id, item_id)
         return None
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to delete item: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to delete item: {str(e)}") from e
 
 
 @router.get("/{item_id}/attachments", response_model=AttachmentListResponse)
@@ -161,9 +159,9 @@ async def get_item_attachments(
     try:
         return await manager.get_item_attachments(site_id, list_id, item_id)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get attachments: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get attachments: {str(e)}") from e
 
 
 @router.get("/{item_id}/versions", response_model=ListItemVersionListResponse)
@@ -183,7 +181,6 @@ async def get_item_versions(
     try:
         return await manager.get_item_versions(site_id, list_id, item_id)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get versions: {str(e)}")
-
+        raise HTTPException(status_code=500, detail=f"Failed to get versions: {str(e)}") from e

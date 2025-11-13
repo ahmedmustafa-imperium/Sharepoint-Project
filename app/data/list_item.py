@@ -18,7 +18,7 @@ class ListItemResponse(BaseModel):
     modified_at: Optional[datetime] = Field(None, alias="lastModifiedDateTime")
     web_url: Optional[str] = None
     content_type: Optional[Dict[str, Any]] = Field(None, alias="contentType")
-    
+
     class Config:
         populate_by_name = True
         from_attributes = True
