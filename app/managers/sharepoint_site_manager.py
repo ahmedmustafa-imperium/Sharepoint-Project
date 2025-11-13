@@ -10,7 +10,6 @@ Responsibilities:
 from typing import Optional
 from app.data.site import SiteListResponse, SiteResponse
 from app.services.site_service import SiteService
-from app.repositories.site_repository import SiteRepository
 
 class SharePointSiteManager:
     """
@@ -20,8 +19,8 @@ class SharePointSiteManager:
     higher-level components (such as API routes) to interact with
     SharePoint sites in a clean manner.
     """
-    def __init__(self):
-        self.site_service = SiteService(SiteRepository)
+    def __init__(self, site_service: SiteService):
+        self.site_service = site_service
 
     async def list_sites(self, page_size: int = 50) -> SiteListResponse:
         """

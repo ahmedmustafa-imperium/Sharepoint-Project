@@ -48,7 +48,8 @@ class GraphClient:
         self.token_getter = token_getter
         self.retry_policy = retry_policy or RetryPolicy()
         self.timeout = timeout
-        self.base_url = settings.GRAPH_BASE.rstrip("/")
+        self.base_url = str(settings.GRAPH_BASE_URL).rstrip("/")
+
 
     async def _get_headers(self) -> Dict[str, str]:
         """
@@ -200,6 +201,38 @@ class GraphClient:
             return response.json()
         
         response_data = await retry_with_policy(_post, self.retry_policy)
+        return response_data
+
+    async def put(
+        self,
+        endpoint: str,
+        json: Optional[Dict[str, Any]] = None,
+        headers: Optional[Dict[str, str]] = None,
+        **kwargs
+    ) -> Dict[str, Any]:
+        """
+        Make a PUT request to Microsoft Graph API.
+
+        Args:
+            endpoint: API endpoint
+            json: JSON body
+            headers: Additional headers
+            **kwargs: Additional arguments (e.g., content for binary uploads)
+
+        Returns:
+            JSON response as dictionary
+        """
+        async def _put():
+            response = await self._make_request(
+                method="PUT",
+                endpoint=endpoint,
+                json=json,
+                headers=headers,
+                **kwargs
+            )
+            return response.json()
+
+        response_data = await retry_with_policy(_put, self.retry_policy)
         return response_data
 
     async def patch(
