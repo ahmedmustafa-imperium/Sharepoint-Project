@@ -110,3 +110,17 @@ def map_site_json(raw: Dict[str, Any]) -> SiteResponse:
         created_at=datetime.fromisoformat(created) if created else None,
         
     )
+
+
+def map_drive_item_to_domain(item: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Map Microsoft Graph drive item JSON into a simple domain dict.
+    Extend as needed for createdBy, timestamps, mimeType, etc.
+    """
+    return {
+        "id": item.get("id"),
+        "name": item.get("name") or (item.get("file") or {}).get("name"),
+        "size": item.get("size"),
+        "web_url": item.get("webUrl") or item.get("@microsoft.graph.downloadUrl"),
+    }
+
