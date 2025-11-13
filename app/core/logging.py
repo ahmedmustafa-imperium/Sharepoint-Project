@@ -23,4 +23,3 @@ def configure_logging() -> None:
 configure_logging()
 logger = logging.getLogger(__name__)
 logger.propagate = True  # ensure it bubbles to root logger
-

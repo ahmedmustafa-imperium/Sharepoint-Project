@@ -12,7 +12,8 @@ router = APIRouter(prefix="/sites", tags=["Sites"])
 
 
 @router.get("/list_sites")
-async def get_list_sites(manager: SharePointSiteManager = Depends(get_sharepoint_site_manager)):
+async def get_list_sites(
+    manager: SharePointSiteManager = Depends(get_sharepoint_site_manager)):
     """
     Retrieve a list of all available SharePoint sites.
 
@@ -29,7 +30,9 @@ async def get_list_sites(manager: SharePointSiteManager = Depends(get_sharepoint
     return list_sites
 
 @router.get("/site_by_id/{site_id}")
-async def site_by_id(site_id: str, manager: SharePointSiteManager = Depends(get_sharepoint_site_manager)):
+async def site_by_id(
+    site_id: str,
+    manager: SharePointSiteManager = Depends(get_sharepoint_site_manager)):
     """
     Retrieve details of a specific SharePoint site by its unique ID.
 
@@ -44,7 +47,9 @@ async def site_by_id(site_id: str, manager: SharePointSiteManager = Depends(get_
     return site
 
 @router.get("/search_sites/{query}")
-async def site_by_query(query: str, manager: SharePointSiteManager = Depends(get_sharepoint_site_manager)):
+async def site_by_query(
+    query: str,
+    manager: SharePointSiteManager = Depends(get_sharepoint_site_manager)):
     """
     Search for SharePoint sites that match a given query string.
 

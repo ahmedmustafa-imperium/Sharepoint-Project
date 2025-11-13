@@ -162,4 +162,3 @@ async def get_list_content_types(
         raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get content types: {str(e)}") from e
-

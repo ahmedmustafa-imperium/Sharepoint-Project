@@ -11,7 +11,7 @@ class TokenResponse(BaseModel):
     access_token: str
     expires_in: int
     token_type: str
-    def is_expiring_soon(self, buffer_seconds: int = 60) -> bool:   
+    def is_expiring_soon(self, buffer_seconds: int = 60) -> bool:
         """
         Return True if token will expire in less than `buffer_seconds`.
         Default buffer = 60 seconds.
@@ -26,5 +26,3 @@ class TokenRequest(BaseModel):
     client_id: str
     client_secret: str
     scope: str
-
-

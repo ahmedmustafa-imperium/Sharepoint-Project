@@ -26,7 +26,7 @@ class ListItemService:
     
     Handles validation and business rules for list item operations.
     """
-    
+
     def __init__(self, list_item_repository: ListItemRepository):
         """
         Initialize list item service.
@@ -48,7 +48,7 @@ class ListItemService:
         """
         if not request.fields:
             raise ValueError("Fields are required for list item creation")
-        
+
         # Validate that Title field is present (common requirement)
         # Note: This might vary by list, so we'll log a warning but not fail
         if "Title" not in request.fields and "title" not in request.fields:
@@ -66,7 +66,7 @@ class ListItemService:
         """
         if not request.fields:
             raise ValueError("Fields are required for list item update")
-        
+
         # Validate that fields are not empty
         if not any(request.fields.values()):
             logger.warning("All fields are empty in update request")
@@ -96,13 +96,13 @@ class ListItemService:
             raise ValueError("Site ID is required")
         if not list_id:
             raise ValueError("List ID is required")
-        
+
         # Validate pagination parameters
         if top is not None and top < 1:
             raise ValueError("Top must be greater than 0")
         if skip is not None and skip < 0:
             raise ValueError("Skip must be greater than or equal to 0")
-        
+
         return await self.list_item_repository.get_list_items(
             site_id=site_id,
             list_id=list_id,
@@ -164,9 +164,9 @@ class ListItemService:
             raise ValueError("Site ID is required")
         if not list_id:
             raise ValueError("List ID is required")
-        
+
         self.validate_list_item_create_request(request)
-        
+
         return await self.list_item_repository.create_list_item(
             site_id=site_id,
             list_id=list_id,
@@ -198,9 +198,9 @@ class ListItemService:
             raise ValueError("List ID is required")
         if not item_id:
             raise ValueError("Item ID is required")
-        
+
         self.validate_list_item_update_request(request)
-        
+
         return await self.list_item_repository.update_list_item(
             site_id=site_id,
             list_id=list_id,
@@ -223,7 +223,7 @@ class ListItemService:
             raise ValueError("List ID is required")
         if not item_id:
             raise ValueError("Item ID is required")
-        
+
         await self.list_item_repository.delete_list_item(site_id, list_id, item_id)
 
     async def get_item_attachments(
@@ -249,7 +249,7 @@ class ListItemService:
             raise ValueError("List ID is required")
         if not item_id:
             raise ValueError("Item ID is required")
-        
+
         return await self.list_item_repository.get_item_attachments(site_id, list_id, item_id)
 
     async def add_attachment(
@@ -285,11 +285,11 @@ class ListItemService:
             raise ValueError("Attachment name is required")
         if not content_bytes:
             raise ValueError("Attachment content is required")
-        
+
         # Validate file name
         if len(name) > 255:
             raise ValueError("Attachment name must be 255 characters or less")
-        
+
         return await self.list_item_repository.add_attachment(
             site_id=site_id,
             list_id=list_id,
@@ -323,7 +323,7 @@ class ListItemService:
             raise ValueError("Item ID is required")
         if not attachment_id:
             raise ValueError("Attachment ID is required")
-        
+
         await self.list_item_repository.delete_attachment(site_id, list_id, item_id, attachment_id)
 
     async def get_item_versions(
@@ -349,7 +349,7 @@ class ListItemService:
             raise ValueError("List ID is required")
         if not item_id:
             raise ValueError("Item ID is required")
-        
+
         return await self.list_item_repository.get_item_versions(site_id, list_id, item_id)
 
     async def get_item_version_by_id(
@@ -379,8 +379,7 @@ class ListItemService:
             raise ValueError("Item ID is required")
         if not version_id:
             raise ValueError("Version ID is required")
-        
+
         return await self.list_item_repository.get_item_version_by_id(
             site_id, list_id, item_id, version_id
         )
-

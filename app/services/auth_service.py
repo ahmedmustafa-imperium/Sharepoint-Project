@@ -30,16 +30,16 @@ class AuthService:
 
     The token is cached via TokenCache to minimize redundant requests.
     """
-    
+
     token_cache: TokenCache
-    
+
     def __post_init__(self):
         """
         Initialize the DefaultAzureCredential instance.
         This automatically picks the most appropriate authentication source.
         """
         self.credential = DefaultAzureCredential()
-        
+
 
 
     async def get_client_credentials_token(self) -> TokenResponse:
@@ -69,10 +69,9 @@ class AuthService:
             token_type="Bearer"
         )
         await self.token_cache.set_token_response(token_resp)
-        
+
         return token_resp
 
-   
     def _acquire_token_sync(self):
         """
         Acquire a new access token synchronously using DefaultAzureCredential.

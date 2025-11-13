@@ -14,7 +14,7 @@ from app.api.router import api_router
 
 configure_logging()
 logger = logging.getLogger(__name__)
-logger.propagate = True 
+logger.propagate = True
 
 def create_app() -> FastAPI:
     """

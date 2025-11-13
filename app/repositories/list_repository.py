@@ -5,19 +5,21 @@ Handles all direct Microsoft Graph API calls for list operations.
 """
 import logging
 from typing import Optional, Dict, Any, List
+from fastapi import status
 from app.utils.graph_client import GraphClient, GraphAPIError
 from app.utils.mapper import (
     map_list_response,
     map_list_list_response,
     map_list_column_response,
-    map_list_content_type_response
+    map_list_content_type_response,
 )
 from app.data.list import (
     ListResponse,
     ListListResponse,
     ListColumnResponse,
-    ListContentTypeResponse
+    ListContentTypeResponse,
 )
+from app.core.exceptions.sharepoint_exceptions import map_graph_error
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +30,7 @@ class ListRepository:
     
     Handles all direct API calls to Microsoft Graph API for lists.
     """
-    
+
     def __init__(self, graph_client: GraphClient):
         """
         Initialize list repository.
@@ -38,7 +40,10 @@ class ListRepository:
         """
         self.graph_client = graph_client
 
-    async def get_lists(self, site_id: str, top: Optional[int] = None, skip: Optional[int] = None) -> ListListResponse:
+    async def get_lists(
+        self, site_id: str,
+        top: Optional[int] = None, 
+        skip: Optional[int] = None) -> ListListResponse:
         """
         Get all lists for a SharePoint site.
         
@@ -59,13 +64,17 @@ class ListRepository:
             params["$top"] = top
         if skip:
             params["$skip"] = skip
-        
+
         try:
             response = await self.graph_client.get(endpoint, params=params)
             return map_list_list_response(response)
-        except GraphAPIError as e:
-            logger.error(f"Failed to get lists for site {site_id}: {e}")
-            raise
+        except GraphAPIError as exc:
+            logger.exception("Failed to get lists for site %s", site_id)
+            raise map_graph_error(
+                "list SharePoint lists",
+                status_code=exc.status_code or status.HTTP_502_BAD_GATEWAY,
+                details=exc.response_body,
+            ) from exc
 
     async def get_list_by_id(self, site_id: str, list_id: str) -> ListResponse:
         """
@@ -82,13 +91,17 @@ class ListRepository:
             GraphAPIError: If API request fails
         """
         endpoint = f"sites/{site_id}/lists/{list_id}"
-        
+
         try:
             response = await self.graph_client.get(endpoint)
             return map_list_response(response)
-        except GraphAPIError as e:
-            logger.error(f"Failed to get list {list_id} from site {site_id}: {e}")
-            raise
+        except GraphAPIError as exc:
+            logger.exception("Failed to get list %s from site %s", list_id, site_id)
+            raise map_graph_error(
+                "retrieve SharePoint list",
+                status_code=exc.status_code or status.HTTP_502_BAD_GATEWAY,
+                details=exc.response_body,
+            ) from exc
 
     async def create_list(
         self,
@@ -115,24 +128,28 @@ class ListRepository:
             GraphAPIError: If API request fails
         """
         endpoint = f"sites/{site_id}/lists"
-        
+
         payload: Dict[str, Any] = {
             "displayName": display_name,
             "template": template or "genericList"
         }
-        
+
         if description:
             payload["description"] = description
-        
+
         if columns:
             payload["columns"] = columns
-        
+
         try:
             response = await self.graph_client.post(endpoint, json=payload)
             return map_list_response(response)
-        except GraphAPIError as e:
-            logger.error(f"Failed to create list in site {site_id}: {e}")
-            raise
+        except GraphAPIError as exc:
+            logger.exception("Failed to create list '%s' in site %s", display_name, site_id)
+            raise map_graph_error(
+                "create SharePoint list",
+                status_code=exc.status_code or status.HTTP_502_BAD_GATEWAY,
+                details=exc.response_body,
+            ) from exc
 
     async def update_list(
         self,
@@ -157,23 +174,27 @@ class ListRepository:
             GraphAPIError: If API request fails
         """
         endpoint = f"sites/{site_id}/lists/{list_id}"
-        
+
         payload: Dict[str, Any] = {}
         if display_name:
             payload["displayName"] = display_name
         if description:
             payload["description"] = description
-        
+
         if not payload:
             # Nothing to update, just return the current list
             return await self.get_list_by_id(site_id, list_id)
-        
+
         try:
             response = await self.graph_client.patch(endpoint, json=payload)
             return map_list_response(response)
-        except GraphAPIError as e:
-            logger.error(f"Failed to update list {list_id} in site {site_id}: {e}")
-            raise
+        except GraphAPIError as exc:
+            logger.exception("Failed to update list %s in site %s", list_id, site_id)
+            raise map_graph_error(
+                "update SharePoint list",
+                status_code=exc.status_code or status.HTTP_502_BAD_GATEWAY,
+                details=exc.response_body,
+            ) from exc
 
     async def delete_list(self, site_id: str, list_id: str) -> None:
         """
@@ -187,13 +208,17 @@ class ListRepository:
             GraphAPIError: If API request fails
         """
         endpoint = f"sites/{site_id}/lists/{list_id}"
-        
+
         try:
             await self.graph_client.delete(endpoint)
-            logger.info(f"Successfully deleted list {list_id} from site {site_id}")
-        except GraphAPIError as e:
-            logger.error(f"Failed to delete list {list_id} from site {site_id}: {e}")
-            raise
+            logger.info("Successfully deleted list %s from site %s", list_id, site_id)
+        except GraphAPIError as exc:
+            logger.exception("Failed to delete list %s from site %s", list_id, site_id)
+            raise map_graph_error(
+                "delete SharePoint list",
+                status_code=exc.status_code or status.HTTP_502_BAD_GATEWAY,
+                details=exc.response_body,
+            ) from exc
 
     async def get_list_columns(self, site_id: str, list_id: str) -> List[ListColumnResponse]:
         """
@@ -210,16 +235,21 @@ class ListRepository:
             GraphAPIError: If API request fails
         """
         endpoint = f"sites/{site_id}/lists/{list_id}/columns"
-        
+
         try:
             response = await self.graph_client.get(endpoint)
             columns = response.get("value", [])
             return [map_list_column_response(col) for col in columns]
-        except GraphAPIError as e:
-            logger.error(f"Failed to get columns for list {list_id} in site {site_id}: {e}")
-            raise
+        except GraphAPIError as exc:
+            logger.exception("Failed to get columns for list %s in site %s", list_id, site_id)
+            raise map_graph_error(
+                "retrieve list columns",
+                status_code=exc.status_code or status.HTTP_502_BAD_GATEWAY,
+                details=exc.response_body,
+            ) from exc
 
-    async def get_list_content_types(self, site_id: str, list_id: str) -> List[ListContentTypeResponse]:
+    async def get_list_content_types(
+        self, site_id: str, list_id: str) -> List[ListContentTypeResponse]:
         """
         Get content types for a list.
         
@@ -234,12 +264,15 @@ class ListRepository:
             GraphAPIError: If API request fails
         """
         endpoint = f"sites/{site_id}/lists/{list_id}/contentTypes"
-        
+
         try:
             response = await self.graph_client.get(endpoint)
             content_types = response.get("value", [])
             return [map_list_content_type_response(ct) for ct in content_types]
-        except GraphAPIError as e:
-            logger.error(f"Failed to get content types for list {list_id} in site {site_id}: {e}")
-            raise
-
+        except GraphAPIError as exc:
+            logger.exception("Failed to get content types for list %s in site %s", list_id, site_id)
+            raise map_graph_error(
+                "retrieve list content types",
+                status_code=exc.status_code or status.HTTP_502_BAD_GATEWAY,
+                details=exc.response_body,
+            ) from exc

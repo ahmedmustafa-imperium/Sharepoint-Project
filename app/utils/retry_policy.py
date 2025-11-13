@@ -105,8 +105,11 @@ async def retry_with_policy(
             if status_code and retry_policy.should_retry(status_code, attempt):
                 delay = retry_policy.get_delay(attempt)
                 logger.warning(
-                    f"Request failed with status {status_code}, "
-                    f"retrying in {delay}s (attempt {attempt + 1}/{retry_policy.max_retries + 1})"
+                    "Request failed with status %s, retrying in %s seconds (attempt %s/%s)",
+                    status_code,
+                    delay,
+                    attempt + 1,
+                    retry_policy.max_retries + 1,
                 )
                 await asyncio.sleep(delay)
                 continue

@@ -7,9 +7,14 @@ layer between the API routes and lower-level service.
 Responsibilities:
 - Coordinate site-related operations, such as listing, retrieving, and searching sites.
 """
+import logging
 from typing import Optional
+
 from app.data.site import SiteListResponse, SiteResponse
 from app.services.site_service import SiteService
+
+logger = logging.getLogger(__name__)
+
 
 class SharePointSiteManager:
     """
@@ -32,6 +37,7 @@ class SharePointSiteManager:
         Returns:
             SiteListResponse: A structured list of SharePoint site metadata.
         """
+        logger.info("Manager: listing sites with page size %s", page_size)
         return await self.site_service.list_sites(top=page_size)
 
     async def get_site(self, site_id: str) -> Optional[SiteResponse]:
@@ -44,6 +50,7 @@ class SharePointSiteManager:
         Returns:
             Optional[SiteResponse]: Details of the requested site, or None if not found.
         """
+        logger.info("Manager: retrieving site %s", site_id)
         return await self.site_service.get_site(site_id=site_id)
 
     async def search_sites(self, query: str) -> SiteListResponse:
@@ -56,4 +63,5 @@ class SharePointSiteManager:
         Returns:
             SiteListResponse: A structured list of sites matching the search.
         """
+        logger.info("Manager: searching sites with query '%s'", query)
         return await self.site_service.search_sites(query)

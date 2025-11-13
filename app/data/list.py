@@ -93,6 +93,6 @@ class ListContentTypeResponse(BaseModel):
     id: str
     name: str
     description: Optional[str] = None
-    
+
     class Config:
         from_attributes = True
