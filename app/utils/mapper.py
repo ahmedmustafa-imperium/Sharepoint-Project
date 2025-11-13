@@ -235,3 +235,17 @@ def map_list_item_version_list_response(api_response: Dict[str, Any]) -> ListIte
         total_count=len(mapped_versions)
     )
 
+
+
+def map_drive_item_to_domain(item: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Map Microsoft Graph drive item JSON into a simple domain dict.
+    Extend as needed for createdBy, timestamps, mimeType, etc.
+    """
+    return {
+        "id": item.get("id"),
+        "name": item.get("name") or (item.get("file") or {}).get("name"),
+        "size": item.get("size"),
+        "web_url": item.get("webUrl") or item.get("@microsoft.graph.downloadUrl"),
+    }
+

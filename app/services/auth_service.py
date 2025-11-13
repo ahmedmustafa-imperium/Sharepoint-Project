@@ -5,7 +5,7 @@ credentials flow. It integrates with a TokenCache to store tokens
 in memory (or Redis if configured) to avoid unnecessary network 
 calls when a valid token already exists.
 """
-import os
+
 import logging
 from dataclasses import dataclass
 import asyncio
@@ -69,6 +69,7 @@ class AuthService:
             token_type="Bearer"
         )
         await self.token_cache.set_token_response(token_resp)
+        
         return token_resp
 
    
