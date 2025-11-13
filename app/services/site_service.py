@@ -37,7 +37,7 @@ class SiteService:
             repository (SiteRepository): The repository class used to interact
                 with Microsoft Graph API for SharePoint sites.
         """
-        self.repository = repository()
+        self.repository = repository
 
     async def list_sites(self, top: int = 50) -> SiteListResponse:
         """

@@ -9,16 +9,19 @@ from app.managers.sharepoint_site_manager import SharePointSiteManager
 from app.utils.graph_client import GraphClient
 from app.repositories.list_repository import ListRepository
 from app.repositories.list_item_repository import ListItemRepository
+from app.repositories.site_repository import SiteRepository
 from app.services.list_service import ListService
 from app.services.list_item_service import ListItemService
+from app.services.site_service import SiteService
 from app.managers.sharepoint_list_manager import SharePointListManager
 from app.managers.sharepoint_list_item_manager import SharePointListItemManager
 
 from app.utils.token_cache import TokenCache
 from app.managers.sharepoint_drive_manager import SharePointDriveManager
+from app.repositories.drive_repository import DriveRepository
+from app.services.drive_service import DriveService
 
-from typing import Optional
-from app.core.config import settings
+# Additional drive dependencies
 
 # Shared token cache instance (singleton pattern)
 _token_cache = TokenCache()
@@ -85,14 +88,25 @@ def get_sharepoint_list_manager(list_service : ListService = Depends(get_list_se
     return SharePointListManager(list_service=list_service)
 
 
-def get_sharepoint_site_manager() -> SharePointSiteManager:
+def get_site_repository(graph_client: GraphClient = Depends(get_graph_client)) -> SiteRepository:
+    """
+    FastAPI dependency provider for SiteRepository.
+    """
+    return SiteRepository(graph_client=graph_client)
+
+
+def get_site_service(site_repository: SiteRepository = Depends(get_site_repository)) -> SiteService:
+    """
+    FastAPI dependency provider for SiteService.
+    """
+    return SiteService(repository=site_repository)
+
+
+def get_sharepoint_site_manager(site_service: SiteService = Depends(get_site_service)) -> SharePointSiteManager:
     """
     FastAPI dependency provider for SharePointSiteManager.
-
-    Returns:
-        SharePointSiteManager: A new instance of SharePointSiteManager.
     """
-    return SharePointSiteManager()
+    return SharePointSiteManager(site_service=site_service)
 
 def get_list_item_repository(graph_client: GraphClient = Depends(get_graph_client)) -> ListItemRepository:
     """
@@ -122,7 +136,24 @@ def get_sharepoint_list_item_manager(list_item_service: ListItemService = Depend
     return SharePointListItemManager(list_item_service=list_item_service)
 
 
-def get_sharepoint_drive_manager() -> SharePointDriveManager:
-    return SharePointDriveManager()
+def get_drive_repository(graph_client: GraphClient = Depends(get_graph_client)) -> DriveRepository:
+    """
+    FastAPI dependency provider for DriveRepository.
+    """
+    return DriveRepository(graph_client=graph_client)
+
+
+def get_drive_service(drive_repository: DriveRepository = Depends(get_drive_repository)) -> DriveService:
+    """
+    FastAPI dependency provider for DriveService.
+    """
+    return DriveService(drive_repository=drive_repository)
+
+
+def get_sharepoint_drive_manager(drive_service: DriveService = Depends(get_drive_service)) -> SharePointDriveManager:
+    """
+    FastAPI dependency provider for SharePointDriveManager.
+    """
+    return SharePointDriveManager(drive_service=drive_service)
 
 
