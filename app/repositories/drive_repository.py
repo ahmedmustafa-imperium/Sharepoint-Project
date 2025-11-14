@@ -1,10 +1,8 @@
 """Repository for interacting with SharePoint drive resources via Graph API."""
-
 import asyncio
 import logging
 import os
 from typing import List, Optional
-
 import aiofiles
 import httpx
 from fastapi import status
@@ -24,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 class DriveRepository:
     """
-    Handles SharePoint API calls for drives, folders, files, version history, and permissions.
+    Handles SharePoint API calls for drives, folders, files .
     """
 
     def __init__(self, graph_client: GraphClient):
