@@ -3,7 +3,6 @@ Service for SharePoint Lists business logic.
 
 Contains validation and business rules for list operations.
 """
-import logging
 from typing import Optional, List
 from app.repositories.list_repository import ListRepository
 from app.data.list import (
@@ -14,8 +13,9 @@ from app.data.list import (
     ListColumnResponse,
     ListContentTypeResponse
 )
+from app.core.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class ListService:
@@ -24,7 +24,7 @@ class ListService:
     
     Handles validation and business rules for list operations.
     """
-    
+
     def __init__(self, list_repository: ListRepository):
         """
         Initialize list service.
@@ -46,10 +46,10 @@ class ListService:
         """
         if not request.display_name or not request.display_name.strip():
             raise ValueError("List display name is required")
-        
+
         if len(request.display_name) > 255:
             raise ValueError("List display name must be 255 characters or less")
-        
+
         # Validate template if provided
         valid_templates = [
             "genericList",
@@ -63,7 +63,7 @@ class ListService:
             "discussionBoard",
             "pictureLibrary"
         ]
-        
+
         if request.template and request.template not in valid_templates:
             logger.warning("Unknown list template: %s , using genericList",request.template)
             request.template = "genericList"
@@ -103,7 +103,7 @@ class ListService:
         """
         if not site_id:
             raise ValueError("Site ID is required")
-        
+
         # Validate pagination parameters
         if top is not None and top < 1:
             raise ValueError("Top must be greater than 0")
@@ -126,7 +126,7 @@ class ListService:
             raise ValueError("Site ID is required")
         if not list_id:
             raise ValueError("List ID is required")
-        
+
         return await self.list_repository.get_list_by_id(site_id, list_id)
 
     async def create_list(
@@ -146,9 +146,9 @@ class ListService:
         """
         if not site_id:
             raise ValueError("Site ID is required")
-        
+
         self.validate_list_create_request(request)
-        
+
         return await self.list_repository.create_list(
             site_id=site_id,
             display_name=request.display_name,
@@ -178,9 +178,9 @@ class ListService:
             raise ValueError("Site ID is required")
         if not list_id:
             raise ValueError("List ID is required")
-        
+
         self.validate_list_update_request(request)
-        
+
         return await self.list_repository.update_list(
             site_id=site_id,
             list_id=list_id,
@@ -200,7 +200,7 @@ class ListService:
             raise ValueError("Site ID is required")
         if not list_id:
             raise ValueError("List ID is required")
-        
+
         await self.list_repository.delete_list(site_id, list_id)
 
     async def get_list_columns(self, site_id: str, list_id: str) -> List[ListColumnResponse]:
@@ -218,10 +218,11 @@ class ListService:
             raise ValueError("Site ID is required")
         if not list_id:
             raise ValueError("List ID is required")
-        
+
         return await self.list_repository.get_list_columns(site_id, list_id)
 
-    async def get_list_content_types(self, site_id: str, list_id: str) -> List[ListContentTypeResponse]:
+    async def get_list_content_types(
+        self, site_id: str, list_id: str) -> List[ListContentTypeResponse]:
         """
         Get content types for a list.
         
@@ -236,6 +237,5 @@ class ListService:
             raise ValueError("Site ID is required")
         if not list_id:
             raise ValueError("List ID is required")
-        
-        return await self.list_repository.get_list_content_types(site_id, list_id)
 
+        return await self.list_repository.get_list_content_types(site_id, list_id)

@@ -1,73 +1,110 @@
-import logging
-from typing import List, Dict, Any
-import httpx
-from app.utils.retry_policy import retry
-from app.core.config import settings
-from app.managers.sharepoint_auth_manager import SharePointAuthManager
+"""
+Repository layer for interacting with SharePoint sites via Microsoft Graph API.
 
+Provides low-level data access methods for retrieving SharePoint site information.
+"""
+from typing import List, Optional
 
-logger = logging.getLogger(__name__)
+from fastapi import status
+
+from app.core.exceptions.sharepoint_exceptions import map_graph_error
+from app.utils.graph_client import GraphClient, GraphAPIError
+from app.utils.mapper import map_site_json
+from app.data.site import SiteResponse
+from app.core.logging import get_logger
+
+logger = get_logger(__name__)
+
 
 class SiteRepository:
-    def __init__(self, base_url: str = None, timeout: int = 10):
-        self.base_url = base_url or str(settings.GRAPH_BASE_URL)
-        self.timeout = timeout
-        # client can be shared; httpx.AsyncClient recommended
-        self._client = httpx.AsyncClient(timeout=httpx.Timeout(self.timeout))
+    """
+    Repository for performing HTTP requests to Microsoft Graph API
+    to fetch SharePoint site information.
+    """
 
-    async def _get_access_token(self) -> str:
-        """
-        Acquire or reuse a cached access token for Microsoft Graph.
-        This uses token_cache interface; replace if you have another implementation.
-        """
-        token=SharePointAuthManager()
-        access_token=await token.get_access_token()
+    def __init__(self, graph_client: GraphClient):
+        self.graph_client = graph_client
 
-        return access_token
-
-    async def _get_headers(self) -> Dict[str, str]:
-        token = await self._get_access_token()
-        return {"Authorization": f"Bearer {token}", "Accept": "application/json"}
-
-   
-    async def list_sites(self, top: int = 50) -> List[Dict[str, Any]]:
+    async def list_sites(self, top: int = 50) -> List[SiteResponse]:
         """
         List site collections accessible to the app. Uses Graph: /sites?search=*
         Note: Graph permissions and tenant settings affect results.
         """
-        headers = await self._get_headers()
-        # Graph doesn't have direct "list all sites" for tenant without Search permission; common approach is to use /sites?search=*
-        url = f"{self.base_url}/sites?search=*"
-        params = {"$top": top}
-        resp = await self._client.get(url, headers=headers, params=params)
-        resp.raise_for_status()
-        data = resp.json()
-        items = data.get("value", [])
-        return items
+        params = {"search": "*", "$top": top}
+        logger.info("Listing SharePoint sites with top=%d", top)
 
-    @retry(max_attempts=3, base_delay=10, exceptions=(httpx.HTTPError,))
-    async def get_site_by_id(self, site_id: str) -> Dict[str, Any]:
-        headers = await self._get_headers()
-        url = f"{self.base_url}/sites/{site_id}"
-        resp = await self._client.get(url, headers=headers)
-        resp.raise_for_status()
-        return resp.json()
+        try:
+            response = await self.graph_client.get("sites", params=params)
+            sites = []
+            for raw_site in response.get("value", []):
+                try:
+                    sites.append(map_site_json(raw_site))
+                except Exception as exc:
+                    logger.warning("Failed to map site response: %s", exc)
+            return sites
+        except GraphAPIError as exc:
+            logger.exception("Failed to list sites")
+            raise map_graph_error(
+                "list SharePoint sites",
+                status_code=exc.status_code or status.HTTP_502_BAD_GATEWAY,
+                details=exc.response_body,
+            ) from exc
 
-    @retry(max_attempts=3, base_delay=10, exceptions=(httpx.HTTPError,))
-    async def search_sites(self, q: str) -> List[Dict[str, Any]]:
+    async def get_site_by_id(self, site_id: str) -> Optional[SiteResponse]:
         """
-        Search sites by display name or url.
-        Use Graph Search or filter client-side if needed.
-        For simplicity, we use /sites?search=<q>
-        """
-        headers = await self._get_headers()
-        url = f"{self.base_url}/sites?search={q}"
-      
-        resp = await self._client.get(url, headers=headers)
-        resp.raise_for_status()
-        data = resp.json()
-        return data.get("value", [])
+        Retrieve details of a specific SharePoint site by its unique ID.
 
-    # Optional: cleanup
-    async def close(self):
-        await self._client.aclose()
+        Args:
+            site_id (str): The unique identifier of the SharePoint site.
+
+        Returns:
+            Dict[str, Any]: A dictionary containing site metadata and details.
+        """
+        endpoint = f"sites/{site_id}"
+        logger.info("Retrieving SharePoint site %s", site_id)
+
+        try:
+            response = await self.graph_client.get(endpoint)
+            if not response:
+                return None
+            try:
+                return map_site_json(response)
+            except Exception as exc:
+                logger.exception("Failed to map site %s", site_id)
+                raise map_graph_error(
+                    "map SharePoint site",
+                    status_code=status.HTTP_502_BAD_GATEWAY,
+                    details=str(exc),
+                ) from exc
+        except GraphAPIError as exc:
+            logger.exception("Failed to retrieve site %s", site_id)
+            raise map_graph_error(
+                "retrieve SharePoint site",
+                status_code=exc.status_code or status.HTTP_502_BAD_GATEWAY,
+                details=exc.response_body,
+            ) from exc
+
+    async def search_sites(self, q: str) -> List[SiteResponse]:
+        """
+        Search sites by display name.
+        Uses /sites?search=<q>
+        """
+        params = {"search": q}
+        logger.info("Searching SharePoint sites with query '%s'", q)
+
+        try:
+            response = await self.graph_client.get("sites", params=params)
+            sites = []
+            for raw_site in response.get("value", []):
+                try:
+                    sites.append(map_site_json(raw_site))
+                except Exception as exc:
+                    logger.warning("Failed to map site response during search: %s", exc)
+            return sites
+        except GraphAPIError as exc:
+            logger.exception("Failed to search sites with query '%s'", q)
+            raise map_graph_error(
+                "search SharePoint sites",
+                status_code=exc.status_code or status.HTTP_502_BAD_GATEWAY,
+                details=exc.response_body,
+            ) from exc

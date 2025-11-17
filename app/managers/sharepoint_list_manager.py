@@ -4,7 +4,6 @@ Manager for SharePoint Lists orchestration.
 Coordinates list operations between API layer and services.
 Handles caching, batch operations, and complex workflows.
 """
-import logging
 from typing import Optional, List
 from app.services.list_service import ListService
 from app.data.list import (
@@ -15,8 +14,9 @@ from app.data.list import (
     ListColumnResponse,
     ListContentTypeResponse
 )
+from app.core.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class SharePointListManager:
@@ -26,7 +26,7 @@ class SharePointListManager:
     Coordinates between FastAPI endpoints and ListService.
     Handles caching, batch operations, and complex workflows.
     """
-    
+
     def __init__(self, list_service: ListService):
         """
         Initialize SharePoint list manager.
@@ -134,7 +134,8 @@ class SharePointListManager:
         logger.info("Getting columns for list %s in site %s", list_id, site_id)
         return await self.list_service.get_list_columns(site_id, list_id)
 
-    async def get_list_content_types(self, site_id: str, list_id: str) -> List[ListContentTypeResponse]:
+    async def get_list_content_types(
+        self, site_id: str, list_id: str) -> List[ListContentTypeResponse]:
         """
         Get content types for a list.
         
@@ -147,4 +148,3 @@ class SharePointListManager:
         """
         logger.info("Getting content types for list %s in site %s", list_id, site_id)
         return await self.list_service.get_list_content_types(site_id, list_id)
-

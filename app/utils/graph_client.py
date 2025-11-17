@@ -4,13 +4,13 @@ HTTP client utility for making requests to Microsoft Graph API.
 Provides async HTTP client with automatic token injection, retry policy,
 and error handling.
 """
-import logging
 from typing import Optional, Dict, Any, Callable, Awaitable
 import httpx
 from app.core.config import settings
 from app.utils.retry_policy import RetryPolicy, retry_with_policy
+from app.core.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class GraphAPIError(Exception):
@@ -48,7 +48,8 @@ class GraphClient:
         self.token_getter = token_getter
         self.retry_policy = retry_policy or RetryPolicy()
         self.timeout = timeout
-        self.base_url = settings.GRAPH_BASE.rstrip("/")
+        self.base_url = str(settings.GRAPH_BASE_URL).rstrip("/")
+
 
     async def _get_headers(self) -> Dict[str, str]:
         """
@@ -94,7 +95,9 @@ class GraphClient:
         request_headers = await self._get_headers()
         if headers:
             request_headers.update(headers)
-        
+
+        logger.debug("GraphClient request %s %s", method, url)
+
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             try:
                 response = await client.request(
@@ -108,6 +111,12 @@ class GraphClient:
                 
                 # Raise exception for non-2xx status codes
                 if not response.is_success:
+                    logger.warning(
+                        "Graph API request failed: %s %s (status=%s)",
+                        method,
+                        url,
+                        response.status_code,
+                    )
                     error_msg = f"Graph API request failed: {method} {url}"
                     try:
                         error_body = response.json()
@@ -124,18 +133,19 @@ class GraphClient:
                 return response
                 
             except httpx.HTTPStatusError as e:
+                logger.error("HTTP status error during Graph request: %s", e)
                 raise GraphAPIError(
                     message=str(e),
                     status_code=e.response.status_code,
                     response_body=e.response.text
-                )
+                ) from e
             except httpx.RequestError as e:
-                logger.error(f"HTTP request error: {e}")
+                logger.error("HTTP request error: %s", e)
                 raise GraphAPIError(
                     message=f"Request failed: {str(e)}",
                     status_code=0,
                     response_body=None
-                )
+                ) from e
 
     async def get(
         self,
@@ -202,6 +212,38 @@ class GraphClient:
         response_data = await retry_with_policy(_post, self.retry_policy)
         return response_data
 
+    async def put(
+        self,
+        endpoint: str,
+        json: Optional[Dict[str, Any]] = None,
+        headers: Optional[Dict[str, str]] = None,
+        **kwargs
+    ) -> Dict[str, Any]:
+        """
+        Make a PUT request to Microsoft Graph API.
+
+        Args:
+            endpoint: API endpoint
+            json: JSON body
+            headers: Additional headers
+            **kwargs: Additional arguments (e.g., content for binary uploads)
+
+        Returns:
+            JSON response as dictionary
+        """
+        async def _put():
+            response = await self._make_request(
+                method="PUT",
+                endpoint=endpoint,
+                json=json,
+                headers=headers,
+                **kwargs
+            )
+            return response.json()
+
+        response_data = await retry_with_policy(_put, self.retry_policy)
+        return response_data
+
     async def patch(
         self,
         endpoint: str,
@@ -258,4 +300,3 @@ class GraphClient:
             return response
         
         await retry_with_policy(_delete, self.retry_policy)
-

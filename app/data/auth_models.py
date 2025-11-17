@@ -11,7 +11,7 @@ class TokenResponse(BaseModel):
     access_token: str
     expires_in: int
     token_type: str
-    def is_expiring_soon(self, buffer_seconds: int = 60) -> bool:   
+    def is_expiring_soon(self, buffer_seconds: int = 60) -> bool:
         """
         Return True if token will expire in less than `buffer_seconds`.
         Default buffer = 60 seconds.
@@ -19,15 +19,10 @@ class TokenResponse(BaseModel):
         expire_time = int(time.time())+ self.expires_in
         return (expire_time - buffer_seconds) <= int(time.time())
 
-class TokenRequest(BaseModel):
-    """
-    Data required to request an access token from Azure AD.
-    """
-    client_id: str
-    client_secret: str
-    scope: str
-
-# class ErrorResponse(BaseModel):
-#     code: str
-#     message: str
-#     details: Optional[str] = None
+# class TokenRequest(BaseModel):
+#     """
+#     Data required to request an access token from Azure AD.
+#     """
+#     client_id: str
+#     client_secret: str
+#     scope: str

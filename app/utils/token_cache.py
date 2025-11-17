@@ -8,10 +8,10 @@ When server restarts → the token is lost.
 
 import asyncio
 from typing import Optional
-import logging
-from app.core.auth_models import TokenResponse
+from app.core.logging import get_logger
+from app.data.auth_models import TokenResponse
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 class TokenCache:
     """

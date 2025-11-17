@@ -4,10 +4,10 @@ Retry policy utility for handling transient failures in HTTP requests.
 Provides exponential backoff retry logic for Microsoft Graph API calls.
 """
 import asyncio
-import logging
 from typing import Callable, TypeVar, Optional
+from app.core.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 T = TypeVar('T')
 
@@ -105,8 +105,11 @@ async def retry_with_policy(
             if status_code and retry_policy.should_retry(status_code, attempt):
                 delay = retry_policy.get_delay(attempt)
                 logger.warning(
-                    f"Request failed with status {status_code}, "
-                    f"retrying in {delay}s (attempt {attempt + 1}/{retry_policy.max_retries + 1})"
+                    "Request failed with status %s, retrying in %s seconds (attempt %s/%s)",
+                    status_code,
+                    delay,
+                    attempt + 1,
+                    retry_policy.max_retries + 1,
                 )
                 await asyncio.sleep(delay)
                 continue
@@ -117,4 +120,3 @@ async def retry_with_policy(
     # Should never reach here, but just in case
     if last_exception:
         raise last_exception
-

@@ -8,15 +8,20 @@ This file implements:
 """
 
 import time
-import logging
 from typing import Dict, Optional
 from jose import jwt
 import httpx
 from fastapi import Request
 from app.core.config import settings
-from app.core.exceptions.auth_exceptions import InvalidTokenHeaderException,TokenKeyNotFoundException,TokenException,MissingAuthorizationHeaderException,InvalidAuthorizationHeaderException
+from app.core.exceptions.auth_exceptions import ( 
+    InvalidTokenHeaderException,
+    TokenKeyNotFoundException,
+    TokenException,
+    MissingAuthorizationHeaderException,
+    InvalidAuthorizationHeaderException)
+from app.core.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 _jwks_cache: Optional[Dict] = None
 _jwks_fetched_at: Optional[float] = None
 JWKS_TTL = 60 * 60  # 1 hour (Time To Live)
@@ -89,7 +94,7 @@ async def verify_jwt(token: str, audience: Optional[str] = None) -> Dict:
         return payload
     except Exception as exc:
         logger.exception("JWT verification failed")
-        raise TokenException(exc)
+        raise TokenException(exc) from exc
 
 async def get_current_user(request: Request, audience: Optional[str] = None):
     """
