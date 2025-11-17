@@ -1,87 +1,58 @@
-Project Overview:
+## SharePoint Project API
 
-This project provides a clean and structured API layer to interact with Microsoft SharePoint using Microsoft Graph.
-It supports authentication, site management, list management, list items operations, and drive/file operations.
+This service exposes a consistent FastAPI interface for working with Microsoft SharePoint through Microsoft Graph. It wraps authentication, sites, lists, list item operations, and drive/file management behind clean REST routes so other services can integrate without learning the Graph surface area.
 
-To run the project:
+### What’s Included
+- Centralized OAuth token acquisition and caching.
+- Site discovery, lookup, and search helpers.
+- Rich list management with CRUD, column, and content-type metadata.
+- List item CRUD endpoints plus attachments and version history.
+- Drive and file utilities to browse, upload, and download SharePoint content.
 
-pdm start
+### Getting Started
+1. Install dependencies with PDM:
+   ```
+   pdm install
+   ```
+2. Configure your Microsoft Graph credentials via the environment entries referenced in `app/core/config.py`.
+3. Start the API (defaults to uvicorn) with:
+   ```
+   pdm start
+   ```
 
-Documentation Guide:
+### Feature Highlights
+- **Authentication**: Issued tokens are cached to minimize round trips to Microsoft identity endpoints, ensuring every manager/service automatically has the bearer token it needs.
+- **Sites**: Quickly list every accessible site, fetch by ID for details, or run search queries for friendly names.
+- **Lists**: Build, inspect, update, or remove lists; introspect schema (columns, content types) for downstream validation.
+- **List Items**: Standard CRUD plus advanced helpers to pull attachment payloads or audit version history.
+- **Drives & Files**: Navigate site drives, inspect folders, upload new documents, or pull full directory trees locally.
 
-Navigate to the docs/ directory for complete API and internal module documentation.
+### HTTP Routes
 
-🔐 1. Authentication (Auth Module)
+| Area | Method | Path | Description |
+| --- | --- | --- | --- |
+| Auth | GET | `/auth/token` | Return the current SharePoint access token. |
+| Sites | GET | `/sites/list_sites` | List every SharePoint site the app can access. |
+| Sites | GET | `/sites/site_by_id/{site_id}` | Fetch metadata for a single site. |
+| Sites | GET | `/sites/search_sites/{query}` | Search sites by display name fragment. |
+| Lists | GET | `/sites/{site_id}/lists` | Retrieve lists for a site with optional `top`/`skip`. |
+| Lists | GET | `/sites/{site_id}/lists/{list_id}` | Fetch a list by ID. |
+| Lists | POST | `/sites/{site_id}/lists` | Create a list from the payload schema. |
+| Lists | PATCH | `/sites/{site_id}/lists/{list_id}` | Update list properties. |
+| Lists | DELETE | `/sites/{site_id}/lists/{list_id}` | Remove a list. |
+| Lists | GET | `/sites/{site_id}/lists/{list_id}/columns` | Inspect list columns. |
+| Lists | GET | `/sites/{site_id}/lists/{list_id}/content-types` | Inspect list content types. |
+| List Items | GET | `/sites/{site_id}/lists/{list_id}/items` | List items with optional `$filter`, `top`, `skip`. |
+| List Items | GET | `/sites/{site_id}/lists/{list_id}/items/{item_id}` | Fetch a specific item. |
+| List Items | POST | `/sites/{site_id}/lists/{list_id}/items` | Create a list item. |
+| List Items | PATCH | `/sites/{site_id}/lists/{list_id}/items/{item_id}` | Update a list item. |
+| List Items | DELETE | `/sites/{site_id}/lists/{list_id}/items/{item_id}` | Delete a list item. |
+| List Items | GET | `/sites/{site_id}/lists/{list_id}/items/{item_id}/attachments` | Return item attachments. |
+| List Items | GET | `/sites/{site_id}/lists/{list_id}/items/{item_id}/versions` | Return version history. |
+| Drives | GET | `/drives/list_drives?site_id={site_id}` | List drives/libraries within a site. |
+| Drives | GET | `/drives/drives/{drive_id}/items?folder_id=...` | List drive or folder contents. |
+| Drives | POST | `/drives/drives/{drive_id}/upload` | Upload a file (optionally supply `folder_id`). |
+| Drives | GET | `/drives/drives/{drive_id}/download/{file_id}` | Download a single file. |
+| Drives | GET | `/drives/drives/{drive_id}/download?parent_id=...` | Download all content under a folder recursively. |
 
-The Auth service handles all authentication flows through Microsoft Graph.
-
-✅ Features
-
-Generates a new access token using OAuth.
-
-Retrieves a cached access token when available to reduce authentication overhead.
-
-Ensures all service layers automatically receive authorization.
-
-🏢 2. Site Management (Sites Module):
-🔹 List All Sites
-
-Retrieve metadata for all SharePoint sites accessible to the client.
-
-🔹 Get Site by ID
-
-Fetch detailed information for a specific site, 
-
-🔹 Search Sites by Name
-
-Search SharePoint sites dynamically using a name.
-
-📄 3. List Management (Lists Module)
-Features
-
-Create, read, update, and delete SharePoint lists.
-
-Retrieve list structure by providing Site ID and List ID:
-
-List columns
-
-Content types
-
-📝 4. List Items (List Items Module)
-Features
-
-Full CRUD operations on list items:
-
-Create item
-
-Read item
-
-Update item
-
-Delete item
-
-Attachments
-
-Version History
-
-📁 5. Drives & Files (Drives Module)
-Features
-
-Retrieve all drives within a SharePoint site.
-
-Retrieve all items within a drive or a folder.
-
-Upload files:
-
-Directly into a drive
-
-Into a specific folder
-
-Download:
-
-A single file to the local system
-
-Entire drive contents
-
-All content from any folder within a drive
-
+> For deeper module documentation or type reference material, see the `docs/` directory when available or inspect the `app/data` models for request/response schemas.
