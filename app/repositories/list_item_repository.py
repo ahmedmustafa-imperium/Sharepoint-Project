@@ -3,7 +3,6 @@ Repository for SharePoint List Items data access.
 
 Handles all direct Microsoft Graph API calls for list item operations.
 """
-import logging
 import base64
 from typing import Optional, Dict, Any
 from fastapi import status
@@ -25,8 +24,9 @@ from app.data.list_item import (
     ListItemVersionListResponse,
 )
 from app.core.exceptions.sharepoint_exceptions import map_graph_error
+from app.core.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class ListItemRepository:

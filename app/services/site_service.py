@@ -12,12 +12,12 @@ Responsibilities:
 """
 
 from typing import Optional
-import logging
 from app.repositories.site_repository import SiteRepository
 from app.data.site import SiteResponse, SiteListResponse
+from app.core.logging import get_logger
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 class SiteService:
     """

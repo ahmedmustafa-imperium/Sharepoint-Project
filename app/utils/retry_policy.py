@@ -4,10 +4,10 @@ Retry policy utility for handling transient failures in HTTP requests.
 Provides exponential backoff retry logic for Microsoft Graph API calls.
 """
 import asyncio
-import logging
 from typing import Callable, TypeVar, Optional
+from app.core.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 T = TypeVar('T')
 

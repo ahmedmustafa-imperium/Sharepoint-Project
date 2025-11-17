@@ -3,7 +3,6 @@ Service for SharePoint Lists business logic.
 
 Contains validation and business rules for list operations.
 """
-import logging
 from typing import Optional, List
 from app.repositories.list_repository import ListRepository
 from app.data.list import (
@@ -14,8 +13,9 @@ from app.data.list import (
     ListColumnResponse,
     ListContentTypeResponse
 )
+from app.core.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class ListService:

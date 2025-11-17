@@ -4,9 +4,9 @@ Mapper utility for converting Microsoft Graph API responses to domain models.
 Converts raw API JSON responses to Pydantic models.
 """
 
-import logging
 from typing import Dict, Any, Optional, List
 from datetime import datetime, timezone
+from app.core.logging import get_logger
 from app.data.list import (
     ListResponse,
     ListListResponse,
@@ -28,7 +28,7 @@ from app.data.drive import (
 )
 from app.data.site import SiteResponse
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def parse_datetime(dt_string: Optional[str]) -> Optional[datetime]:

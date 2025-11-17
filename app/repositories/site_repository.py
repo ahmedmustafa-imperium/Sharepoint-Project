@@ -3,7 +3,6 @@ Repository layer for interacting with SharePoint sites via Microsoft Graph API.
 
 Provides low-level data access methods for retrieving SharePoint site information.
 """
-import logging
 from typing import List, Optional
 
 from fastapi import status
@@ -12,8 +11,9 @@ from app.core.exceptions.sharepoint_exceptions import map_graph_error
 from app.utils.graph_client import GraphClient, GraphAPIError
 from app.utils.mapper import map_site_json
 from app.data.site import SiteResponse
+from app.core.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class SiteRepository:

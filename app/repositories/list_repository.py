@@ -3,7 +3,6 @@ Repository for SharePoint Lists data access.
 
 Handles all direct Microsoft Graph API calls for list operations.
 """
-import logging
 from typing import Optional, Dict, Any, List
 from fastapi import status
 from app.utils.graph_client import GraphClient, GraphAPIError
@@ -20,8 +19,9 @@ from app.data.list import (
     ListContentTypeResponse,
 )
 from app.core.exceptions.sharepoint_exceptions import map_graph_error
+from app.core.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class ListRepository:

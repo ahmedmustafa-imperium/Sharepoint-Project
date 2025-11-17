@@ -8,20 +8,20 @@ This file implements:
 """
 
 import time
-import logging
 from typing import Dict, Optional
 from jose import jwt
 import httpx
 from fastapi import Request
 from app.core.config import settings
-from app.core.exceptions.auth_exceptions import (   
+from app.core.exceptions.auth_exceptions import ( 
     InvalidTokenHeaderException,
     TokenKeyNotFoundException,
     TokenException,
     MissingAuthorizationHeaderException,
     InvalidAuthorizationHeaderException)
+from app.core.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 _jwks_cache: Optional[Dict] = None
 _jwks_fetched_at: Optional[float] = None
 JWKS_TTL = 60 * 60  # 1 hour (Time To Live)
