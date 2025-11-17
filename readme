@@ -1,0 +1,87 @@
+Project Overview:
+
+This project provides a clean and structured API layer to interact with Microsoft SharePoint using Microsoft Graph.
+It supports authentication, site management, list management, list items operations, and drive/file operations.
+
+To run the project:
+
+pdm start
+
+Documentation Guide:
+
+Navigate to the docs/ directory for complete API and internal module documentation.
+
+🔐 1. Authentication (Auth Module)
+
+The Auth service handles all authentication flows through Microsoft Graph.
+
+✅ Features
+
+Generates a new access token using OAuth.
+
+Retrieves a cached access token when available to reduce authentication overhead.
+
+Ensures all service layers automatically receive authorization.
+
+🏢 2. Site Management (Sites Module):
+🔹 List All Sites
+
+Retrieve metadata for all SharePoint sites accessible to the client.
+
+🔹 Get Site by ID
+
+Fetch detailed information for a specific site, 
+
+🔹 Search Sites by Name
+
+Search SharePoint sites dynamically using a name.
+
+📄 3. List Management (Lists Module)
+Features
+
+Create, read, update, and delete SharePoint lists.
+
+Retrieve list structure by providing Site ID and List ID:
+
+List columns
+
+Content types
+
+📝 4. List Items (List Items Module)
+Features
+
+Full CRUD operations on list items:
+
+Create item
+
+Read item
+
+Update item
+
+Delete item
+
+Attachments
+
+Version History
+
+📁 5. Drives & Files (Drives Module)
+Features
+
+Retrieve all drives within a SharePoint site.
+
+Retrieve all items within a drive or a folder.
+
+Upload files:
+
+Directly into a drive
+
+Into a specific folder
+
+Download:
+
+A single file to the local system
+
+Entire drive contents
+
+All content from any folder within a drive
+
