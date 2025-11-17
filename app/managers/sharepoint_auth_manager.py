@@ -7,12 +7,12 @@ It simplifies token management by:
 - Caching tokens via TokenCache.
 - Providing a single method to get a valid access token for SharePoint or Microsoft Graph API.
 """
-import logging
 from typing import Optional
 from app.services.auth_service import AuthService
 from app.utils.token_cache import TokenCache
+from app.core.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class SharePointAuthManager:

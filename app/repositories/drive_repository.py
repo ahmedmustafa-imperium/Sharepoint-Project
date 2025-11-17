@@ -1,7 +1,6 @@
 """Repository for interacting with SharePoint drive resources via Graph API."""
 
 import asyncio
-import logging
 import os
 from typing import List, Optional
 
@@ -22,8 +21,9 @@ from app.utils.mapper import (
     map_drive_response,
     map_drive_item_list_response,
 )
+from app.core.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class DriveRepository:
@@ -104,7 +104,11 @@ class DriveRepository:
         destination_path: Optional[str] = None,
     ) -> FileDownloadResponse:
         """
-        Download a file from a drive. Optionally persists the content to disk.
+        Download a file from a drive, streaming bytes directly to disk.
+
+        If `destination_path` is a directory (or ends with a path separator), the file
+        is saved inside that directory using its Graph-provided name. When no
+        destination is provided, the file is written to the current working directory.
         """
         metadata_endpoint = f"drives/{drive_id}/items/{file_id}"
 
@@ -135,25 +139,22 @@ class DriveRepository:
 
         file_name = metadata.get("name", "downloaded_file")
 
-        chunks: List[bytes] = []
+        destination_path = destination_path or os.path.join(os.getcwd(), "")
+        is_directory = destination_path.endswith(os.sep) or (
+            os.path.exists(destination_path) and os.path.isdir(destination_path)
+        )
+        target_path = (
+            os.path.join(destination_path, file_name) if is_directory else destination_path
+        )
+        os.makedirs(os.path.dirname(target_path) or ".", exist_ok=True)
+
         async with httpx.AsyncClient() as client:
             async with client.stream("GET", download_url, timeout=120) as response:
                 response.raise_for_status()
-                async for chunk in response.aiter_bytes():
-                    chunks.append(chunk)
-
-        content = b"".join(chunks)
-        saved_path: Optional[str] = None
-
-        if destination_path:
-            target_path = destination_path
-            if os.path.isdir(destination_path):
-                target_path = os.path.join(destination_path, file_name)
-
-            os.makedirs(os.path.dirname(target_path) or ".", exist_ok=True)
-            async with aiofiles.open(target_path, "wb") as file_handle:
-                await file_handle.write(content)
-            saved_path = target_path
+                async with aiofiles.open(target_path, "wb") as file_handle:
+                    async for chunk in response.aiter_bytes():
+                        if chunk:
+                            await file_handle.write(chunk)
 
         return FileDownloadResponse(
             id=metadata.get("id", ""),
@@ -163,8 +164,8 @@ class DriveRepository:
             last_modified_at=metadata.get("lastModifiedDateTime"),
             web_url=metadata.get("webUrl"),
             download_url=download_url,
-            content=content,
-            saved_path=saved_path,
+            content=None,
+            saved_path=target_path,
         )
         
     async def download_files(

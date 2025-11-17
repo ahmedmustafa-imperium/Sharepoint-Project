@@ -4,7 +4,6 @@ Manager for SharePoint List Items orchestration.
 Coordinates list item operations between API layer and services.
 Handles caching, batch operations, and complex workflows.
 """
-import logging
 from typing import Optional
 from app.services.list_item_service import ListItemService
 from app.data.list_item import (
@@ -17,8 +16,9 @@ from app.data.list_item import (
     ListItemVersionResponse,
     ListItemVersionListResponse
 )
+from app.core.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class SharePointListItemManager:

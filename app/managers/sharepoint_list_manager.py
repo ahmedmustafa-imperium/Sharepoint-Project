@@ -4,7 +4,6 @@ Manager for SharePoint Lists orchestration.
 Coordinates list operations between API layer and services.
 Handles caching, batch operations, and complex workflows.
 """
-import logging
 from typing import Optional, List
 from app.services.list_service import ListService
 from app.data.list import (
@@ -15,8 +14,9 @@ from app.data.list import (
     ListColumnResponse,
     ListContentTypeResponse
 )
+from app.core.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class SharePointListManager:

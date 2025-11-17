@@ -3,7 +3,6 @@ Service for SharePoint List Items business logic.
 
 Contains validation and business rules for list item operations.
 """
-import logging
 from typing import Optional
 from app.repositories.list_item_repository import ListItemRepository
 from app.data.list_item import (
@@ -16,8 +15,9 @@ from app.data.list_item import (
     ListItemVersionResponse,
     ListItemVersionListResponse
 )
+from app.core.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class ListItemService:

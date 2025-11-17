@@ -4,11 +4,11 @@ Configuration module for application runtime settings.
 Loads environment variables such as Azure client credentials,
 logging configuration, and Redis settings for token caching.
 """
-
 from typing import Optional
+from dotenv import load_dotenv
 from pydantic_settings import BaseSettings
 from pydantic import Field, AnyHttpUrl
-
+load_dotenv()
 class Settings(BaseSettings):
     """
     Application settings loaded from environment variables using Pydantic.

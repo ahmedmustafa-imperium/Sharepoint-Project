@@ -4,13 +4,13 @@ HTTP client utility for making requests to Microsoft Graph API.
 Provides async HTTP client with automatic token injection, retry policy,
 and error handling.
 """
-import logging
 from typing import Optional, Dict, Any, Callable, Awaitable
 import httpx
 from app.core.config import settings
 from app.utils.retry_policy import RetryPolicy, retry_with_policy
+from app.core.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class GraphAPIError(Exception):

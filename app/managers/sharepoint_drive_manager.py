@@ -1,12 +1,12 @@
 """Top-level manager for orchestrating SharePoint drive operations."""
 
-import logging
 from typing import Optional
 
 from app.services.drive_service import DriveService
 from app.data.drive import FileUploadRequest
+from app.core.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 class SharePointDriveManager:
     """Facade to orchestrate all drive-related operations."""

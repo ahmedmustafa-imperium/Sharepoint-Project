@@ -6,17 +6,15 @@ in memory (or Redis if configured) to avoid unnecessary network
 calls when a valid token already exists.
 """
 
-import logging
 from dataclasses import dataclass
 import asyncio
-from dotenv import load_dotenv
 from azure.identity import DefaultAzureCredential
 from app.utils.token_cache import TokenCache
-from app.core.auth_models import TokenResponse
+from app.data.auth_models import TokenResponse
 from app.core.config import settings
+from app.core.logging import get_logger
 
-load_dotenv()
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 @dataclass
 class AuthService:
     """

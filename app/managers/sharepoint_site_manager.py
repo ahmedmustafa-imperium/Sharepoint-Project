@@ -7,13 +7,13 @@ layer between the API routes and lower-level service.
 Responsibilities:
 - Coordinate site-related operations, such as listing, retrieving, and searching sites.
 """
-import logging
 from typing import Optional
 
 from app.data.site import SiteListResponse, SiteResponse
 from app.services.site_service import SiteService
+from app.core.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class SharePointSiteManager:
